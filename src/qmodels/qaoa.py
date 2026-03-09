@@ -6,14 +6,14 @@ import time
 
 class QAOA:
     def __init__(self,depth,H):     # Class initialization. Arguments are "depth",
-                                            # and a Diagonal Hamiltonian,"H".
+                                    # and a Diagonal Hamiltonian,"H".
         self.H = H 
         self.n = int(np.log2(int(len(self.H)))) # Calculates the number of qubits.
 
         #______________________________________________________________________________________________________
-        self.X = self.new_mixerX()        # Executes a sequence of array manipulations to encapsulate the
-                                                # effect of standard one body driver hamiltonian, \Sum \sigma_x,
-                                                # acting on any state.
+        self.X = self.new_mixerX()          # Executes a sequence of array manipulations to encapsulate the
+                                            # effect of standard one body driver hamiltonian, \Sum \sigma_x,
+                                            # acting on any state.
         #______________________________________________________________________________________________________
 
 

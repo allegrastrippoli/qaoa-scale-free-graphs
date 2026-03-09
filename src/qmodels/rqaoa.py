@@ -5,64 +5,70 @@ import networkx as nx
 import numpy as np
 
 class RQAOA:
-    def __init__(self, G, p):
+    def __init__(self, depth, H, Q, G):      
+        self.initial_graph = G
+        self.H = H
+        self.Q = Q
         self.G = G
-        self.p = p
+        self.p = depth
+
+        self.mapping = {i: i for i in list(self.G.nodes)}  # The arguments are “mappings”, maps the ids of the initial nodes to the new ids,
+                                                           # assigned after removing nodes during recursion. 
+        self.constraints = {}                              # "constraints", stores correlations between edges
         
-    def expectation(self, Q, Z_iZ_j, angles):
-        state = Q.qaoa_ansatz(angles)
-        col_shape = (2**Q.n, 1)
+    def expectation(self, Z_iZ_j, angles):
+        state = self.Q.qaoa_ansatz(angles)
+        col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * Z_iZ_j.reshape(col_shape))
         return np.real(ex)
     
-    def overlap(self, Q, H, angles):     
-        state = Q.qaoa_ansatz(angles)                                   
-        g_ener = min(H)
+    def overlap(self, angles):
+        state = self.Q.qaoa_ansatz(angles)
+        g_ener = min(self.H)
         olap = 0
-        for i in range(len(H)):
-            if H[i] == g_ener:
-                olap+= np.absolute(state[i])**2
+        for i in range(len(self.H)):
+            if self.H[i] == g_ener:
+                olap += np.absolute(state[i])**2
         return olap
     
-    def rqaoa(self, G, p, Q, angles, mapping, constraints):
-        def is_terminal(G):
-            for comp in nx.connected_components(G):
-                sub = G.subgraph(comp)
+    def rqaoa(self, angles):
+        def is_terminal():
+            for comp in nx.connected_components(self.G):
+                sub = self.G.subgraph(comp)
                 if sub.number_of_nodes() > 2:
                     return False
             return True
-        def extract_terminal_constraints(G, Q, angles, mapping, constraints):
-            for comp in nx.connected_components(G):
-                sub = G.subgraph(comp)
+        def extract_terminal_constraints(angles):
+            for comp in nx.connected_components(self.G):
+                sub = self.G.subgraph(comp)
                 if sub.number_of_edges() == 1:
                     i, j = list(sub.edges)[0]
-                    Z_iZ_j = ZZ(nx.to_numpy_array(G), i, j, len(G.nodes))
-                    exp = self.expectation(Q, Z_iZ_j, angles)
-                    # print(f"Added constraint: {(mapping[i],mapping[j]), np.sign(exp)} new values {i, j,  np.sign(exp)}")
-                    constraints[(mapping[i], mapping[j])] = np.sign(exp)
-            return constraints
-        if is_terminal(G):
+                    Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
+                    exp = self.expectation(Z_iZ_j, angles)
+                    self.constraints[(self.mapping[i], self.mapping[j])] = np.sign(exp)
+        if is_terminal():
             # print(f"Ground state: {format(np.argmin(Q.H), f"0{len(G.nodes)}b")}, Overlap: {self.overlap(Q, Q.H, angles)}") 
-            return extract_terminal_constraints(G, Q, angles, mapping, constraints)
+            extract_terminal_constraints(angles)
+            return self.constraints
         # print(f"Ground state: {format(np.argmin(Q.H), f"0{len(G.nodes)}b")}, Overlap: {self.overlap(Q, Q.H, angles)}") 
         magnitude = {}
-        for (i,j) in G.edges:
-            Z_iZ_j = ZZ(nx.to_numpy_array(G), i, j, len(G.nodes))
-            magnitude[(i, j)] = self.expectation(Q, Z_iZ_j, angles)
+        for (i,j) in self.G.edges:
+            Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
+            magnitude[(i, j)] = self.expectation(Z_iZ_j, angles)
         (i,j), max_magn = max(magnitude.items(), key=lambda item: abs(item[1]))
         s = np.sign(max_magn) 
-        constraints[(mapping[i],mapping[j])] = s
+        self.constraints[(self.mapping[i],self.mapping[j])] = s
         # print(f"Added constraint: {(mapping[i],mapping[j]), s} new values {i, j,  s}")
-        H_new = reduce_hamiltonian(nx.to_numpy_array(G), len(G.nodes), i, j, s)    
+        self.H = reduce_hamiltonian(nx.to_numpy_array(self.G), len(self.G.nodes), i, j, s)    
+        self.Q = QAOA(self.p, self.H)  
         bds= [(0,2*np.pi+0.1)]*self.p + [(0,1*np.pi+0.1)]*self.p
-        Q_new = QAOA(p, H_new)  
-        res = minimize(Q_new.expectation,angles,method='L-BFGS-B', jac=None, bounds=bds, options={'maxiter': 1000})
-        mapping, G_new = remove_node(G, j, mapping)
-        return self.rqaoa(G_new, p, Q_new, res.x, mapping, constraints)
+        res = minimize(self.Q.expectation,angles,method='L-BFGS-B', jac=None, bounds=bds, options={'maxiter': 1000})
+        self.mapping, self.G = remove_node(self.G, j, self.mapping)
+        return self.rqaoa(res.x)
     
     def compute_bitstring(self, constraints):
         # print(f"Correlation map: {constraints}")
-        assignment = find_assignment(self.G, constraints)
+        assignment = find_assignment(self.initial_graph, constraints)
         maxcut = [assignment[key] for key in sorted(assignment)]
         return  ''.join(map(str, maxcut))
       
@@ -74,6 +80,6 @@ class RQAOA:
                     initial_angles.append(random.uniform(0,2*np.pi))
                 else:
                     initial_angles.append(random.uniform(0,np.pi))
-        H = graph_to_hamiltonian(nx.to_numpy_array(self.G), len(self.G.nodes))    
-        Q = QAOA(self.p, H) 
-        return self.rqaoa(self.G, self.p, Q, initial_angles, {i: i for i in list(self.G.nodes)}, {})    
+        return self.rqaoa(initial_angles)    
+
+
