@@ -52,9 +52,10 @@ def plot_degree_distribution(G: nx.Graph, gamma: float):
     axes[1].set_ylabel('Count')
     axes[1].set_title(f'Degree Distribution (Log-Log) - γ={gamma:.2f}')
     plt.tight_layout()
-    return fig
+    plt.savefig("./utils/figures/degree_distribution.png", dpi=300)
 
-def plot_energy_landscape(fun, ax=None):
+
+def plot_energy_landscape(fun, ax=None, save_fig=False):
     if ax is None:
         ax = plt.gca()
     fig = ax.figure 
@@ -76,6 +77,9 @@ def plot_energy_landscape(fun, ax=None):
     ax.set_xlabel(r"$\beta$")
     ax.set_ylabel(r"$\gamma$")
     fig.colorbar(im, ax=ax, label="Energy")
+    if save_fig:
+        plt.savefig("./utils/figures/energy_landscape.png", dpi=300)
+        plt.close()
     return im
     
 def edge_neighborhood_subgraph(G: nx.Graph, edge: tuple) -> nx.Graph:
@@ -120,11 +124,9 @@ def plot_full_graph(G, S, node_colors, edge_colors):
     pos = nx.spring_layout(G)    
     plt.figure(figsize=(8, 8))
     nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
-    plt.show()
-    plt.close() 
+    plt.savefig("./utils/figures/full_graph.png", dpi=300)
     plot_energy_landscape(S.sum_of_expectations)
-    plt.show()
-    plt.close() 
+    plt.savefig("./utils/figures/full_energy_landscape.png", dpi=300)
     # plt.savefig("full_graph.png", dpi=300)
 
 def plot_top_n_subgraphs(G, S, edge_color_map):
@@ -148,8 +150,7 @@ def plot_top_n_subgraphs(G, S, edge_color_map):
             if (lc.u, lc.v) == (u, v) or (lc.v, lc.u) == (u, v):
                 plot_energy_landscape(lc.expectation, ax=ax_energy)
     plt.tight_layout()
-    plt.show()
-    plt.close()
+    plt.savefig("./utils/figures/top_n_subgraphs.png", dpi=300)
     
 def plot_subgraphs_maxns(G, S, top_n):
     top_n_edges = top_n_max_neighborhood_size(G, top_n)

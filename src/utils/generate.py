@@ -88,7 +88,7 @@ def generate_bounded_scale_free_graph(num_nodes: int, gamma: float, max_node_deg
         if total_weight == 0:
             valid_targets = [n for n in existing_nodes if G.degree(n) < max_node_degree]
             if not valid_targets:
-                break # Cannot add more edges without violating constraints
+                break 
             probabilities = np.ones(len(valid_targets)) / len(valid_targets)
             target_pool = valid_targets
         else:
