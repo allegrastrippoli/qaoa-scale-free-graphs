@@ -2,6 +2,8 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import pandas as pd
+import csv
 
 def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
     a, b = edge
@@ -32,7 +34,7 @@ def top_n_max_neighborhood_size(G: nx.Graph, n: int):
         sizes.append((edge, neighborhood_size(G, edge)))
     top_n_sizes = sorted(sizes, key=lambda x:x[1])[-n:]
     return [edge for edge, _ in top_n_sizes]
-        
+
 def plot_degree_distribution(G: nx.Graph, gamma: float):
     degrees = [G.degree(n) for n in G.nodes()]
     degree_counts = Counter(degrees)
@@ -53,6 +55,36 @@ def plot_degree_distribution(G: nx.Graph, gamma: float):
     axes[1].set_title(f'Degree Distribution (Log-Log) - γ={gamma:.2f}')
     plt.tight_layout()
     plt.savefig("./utils/figures/degree_distribution.png", dpi=300)
+
+def compute_and_save_energy(fun, filename="./utils/csv/energy_landscape.csv"):
+    n_points = 100
+    gammas = np.linspace(0, 2*np.pi, n_points)
+    betas = np.linspace(0, np.pi/2, n_points)
+    with open(filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["gamma", "beta", "energy"])
+        for gamma in gammas:
+            for beta in betas:
+                energy = fun([gamma, beta])
+                writer.writerow([gamma, beta, energy])
+
+def plot_energy_from_csv(filename, ax=None, save_fig=False, index=""):
+    if ax is None:
+        ax = plt.gca()
+    df = pd.read_csv(filename)
+    gammas = np.sort(df["gamma"].unique())
+    betas = np.sort(df["beta"].unique())
+    n_gamma = len(gammas)
+    n_beta = len(betas)
+    E = df["energy"].values.reshape(n_gamma, n_beta)
+    im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
+    ax.set_xlabel(r"$\beta$")
+    ax.set_ylabel(r"$\gamma$")
+    plt.colorbar(im, ax=ax, label="Energy")
+    if save_fig:
+        plt.savefig(f"./utils/figures/energy_landscape_{index}.png", dpi=300)
+        plt.close()
+    return im
 
 def plot_energy_landscape(fun, ax=None, save_fig=False, index=""):
     if ax is None:
@@ -156,3 +188,19 @@ def plot_subgraphs_maxns(G, S, top_n):
     edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges)
     plot_full_graph(G, S, node_colors, edge_colors)
     plot_top_n_subgraphs(G, S, edge_color_map)    
+
+def plot_optimized_angles(x, y):
+    plt.figure(figsize=(8, 6))
+    x_ave = np.average(x)
+    x_std = np.std(x)
+    y_ave = np.average(y)
+    y_std = np.std(y)
+    plt.scatter(x, y)
+    plt.errorbar(x_ave, y_ave, yerr=y_std, xerr=x_std, fmt='o', color='red',
+                ecolor='red', capsize=5, elinewidth=2, label='Data with Std Dev')
+    plt.xlabel(r"$\beta$")
+    plt.ylabel(r"$\gamma$")
+    plt.title('Optimized Angles')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('./utils/figures/optimized_angles.png', dpi=300)

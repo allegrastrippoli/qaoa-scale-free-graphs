@@ -61,7 +61,7 @@ def generate_scale_free_graph(num_nodes: int, gamma: float) -> nx.Graph:
             G.add_edge(new_node, target)
     return G
 
-def generate_bounded_scale_free_graph(num_nodes: int, gamma: float, max_node_degree: int = 24) -> nx.Graph:
+def generate_bounded_scale_free_graph(num_nodes: int, gamma: float, max_node_degree: int = 11) -> nx.Graph:
     if num_nodes < 2:
         G = nx.Graph()
         if num_nodes == 1:

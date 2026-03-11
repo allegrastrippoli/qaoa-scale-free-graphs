@@ -1,16 +1,16 @@
-from utils.utils import graph_to_hamiltonian
+from utils.utils import *
+from utils.generate import *
+from utils.plots import  *
 from qmodels.lightcones import Simulation, LightCone
 from qmodels.rqaoa import RQAOA
 from qmodels.qaoa import QAOA
-from utils.plots import  *
 import networkx as nx
 import numpy as np
-import itertools
-import random
 
 # To run 
 # cd qaoa-scale-free-graphs/src
 # python -m pytest .
+
 # def maxcut_value(G, bitstring):
 #     cut = 0
 #     for i, j in G.edges:
@@ -66,4 +66,19 @@ def test_energy_landscape_regular_graph(ising):
             name_str = f"ising_{i}"
         else:
             name_str = f"standard_{i}"
-        plot_energy_landscape(L.expectation, save_fig=True, index=f"light_cone_{name_str}")
+        # plot_energy_landscape(L.expectation, save_fig=True, index=f"light_cone_{name_str}")
+        compute_and_save_energy(L.expectation)
+        plot_energy_from_csv(filename="./utils/csv/energy_landscape.csv", save_fig=True, index=f"light_cone_{name_str}")
+
+def test_scale_free_graph():
+    top_n = 5
+    num_nodes = 20
+    gamma = 2.4
+    p = 1
+    G = generate_bounded_scale_free_graph(num_nodes, gamma)
+    degrees = [G.degree(n) for n in G.nodes()]
+    max_ns, max_edge = max_neighborhood_size(G)
+    print(f"Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}, Connected: {nx.is_connected(G)}, Max degree: {max(degrees)}, Min degree: {min(degrees)}, Avg degree: {np.mean(degrees):.2f}, Max neighborhood size: {max_ns}")
+    fig = plot_degree_distribution(G, gamma)
+    S = Simulation(G, p)
+    plot_subgraphs_maxns(G, S, top_n)
