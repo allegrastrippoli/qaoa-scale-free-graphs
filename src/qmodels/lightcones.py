@@ -7,20 +7,24 @@ import numpy as np
 import random
 
 class LightCone:
-    def __init__(self, G, u, v, p) :
+    def __init__(self, G, u, v, p, ising=True):
+        self.ising=ising
         self.u, self.v = u, v
         self.mapping, self.v_sub, self.new_u, self.new_v = compute_subgraph_for_edge(G, u, v)
         v_sub_arr = nx.to_numpy_array(self.v_sub)
         self.n_sub: int = len(self.v_sub.nodes)
-        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub)
-        self.Z_uZ_v = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub)
+        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub, self.ising)
+        self.Z_uZ_v = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub, self.ising)
         self.Q = QAOA(p, self.H)
         
-    def expectation(self, angles):
+    def expectation(self, angles, ising=True):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * self.Z_uZ_v.reshape(col_shape))
-        return np.real(ex)
+        if ising: 
+            return np.real(ex)
+        else:
+            return (1-np.real(ex))/2
 
     def overlap(self, angles):     
         state = self.Q.qaoa_ansatz(angles)                                   

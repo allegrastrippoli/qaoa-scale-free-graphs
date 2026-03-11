@@ -54,14 +54,13 @@ def plot_degree_distribution(G: nx.Graph, gamma: float):
     plt.tight_layout()
     plt.savefig("./utils/figures/degree_distribution.png", dpi=300)
 
-
 def plot_energy_landscape(fun, ax=None, save_fig=False):
     if ax is None:
         ax = plt.gca()
     fig = ax.figure 
     n_ticks = 5
     n_points = 100
-    gammas = np.linspace(0, np.pi, n_points)
+    gammas = np.linspace(0, 2*np.pi, n_points)
     betas = np.linspace(0, np.pi/2, n_points)
     E = np.zeros((n_points, n_points))
     for i, gamma in enumerate(gammas):

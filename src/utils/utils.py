@@ -14,7 +14,7 @@ def tensor(k):
     return t
 
 # Each edge contributes with either +1 (the edge is not cut) or -1 (the edge is cut) 
-def graph_to_hamiltonian(G,n): 
+def graph_to_hamiltonian(G,n, ising=True): 
     H = np.zeros((2**n), dtype = 'float64') 
     Z = np.array([1,-1],dtype = 'float64')
     for i in range(n):
@@ -25,25 +25,28 @@ def graph_to_hamiltonian(G,n):
             if G[i][j] !=0: 
                 k[i] = Z
                 k[j] = Z
-                H+= tensor(k)*G[i][j] 
+                if ising:
+                    H+= tensor(k)*G[i][j] 
+                else:
+                    zz = tensor(k) 
+                    H += 0.5 * G[i][j] * (1 - zz) 
             j+=1
     return H
 
-def ZZ(G, i, j, n): 
+
+def ZZ(G, i, j, n, ising=True): 
     Z = np.array([1,-1],dtype = 'float64')
     k = [[1,1]]*n 
     k = np.array(k,dtype = 'float64')    
     if G[i][j] != 0: 
         k[i] = Z
         k[j] = Z
-    return tensor(k)*G[i][j] 
+        if ising:
+            return tensor(k)*G[i][j] 
+        else:
+            zz = tensor(k) 
+            return 0.5 * G[i][j] * (1 - zz) 
 
-def Z(i, n): 
-    Z = np.array([1,-1],dtype = 'float64')
-    k = [[1,1]]*n 
-    k = np.array(k,dtype = 'float64')    
-    k[i] = Z
-    return tensor(k)
 
 def compute_subgraph_for_edge(G, u, v):
     nodes =  set(G.neighbors(u)) | set(G.neighbors(v))
