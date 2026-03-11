@@ -60,3 +60,43 @@ def generate_scale_free_graph(num_nodes: int, gamma: float) -> nx.Graph:
         for target in targets:
             G.add_edge(new_node, target)
     return G
+
+def generate_bounded_scale_free_graph(num_nodes: int, gamma: float, max_node_degree: int = 24) -> nx.Graph:
+    if num_nodes < 2:
+        G = nx.Graph()
+        if num_nodes == 1:
+            G.add_node(0)
+        return G
+    alpha = max(0.3, 4.5 / gamma - 0.5)
+    m = max(1, min(5, int(np.ceil(5 - gamma))))
+    seed_size = min(m + 1, num_nodes, max_node_degree + 1)
+    G = nx.Graph()
+    for i in range(seed_size):
+        G.add_node(i)
+    for i in range(seed_size):
+        for j in range(i + 1, seed_size):
+            G.add_edge(i, j)
+    for new_node in range(seed_size, num_nodes):
+        G.add_node(new_node)
+        existing_nodes = list(range(new_node))
+        delta = 0.5
+        weights = np.zeros(len(existing_nodes))
+        for idx, node in enumerate(existing_nodes):
+            if G.degree(node) < max_node_degree:
+                weights[idx] = (G.degree(node) + delta) ** alpha
+        total_weight = weights.sum()
+        if total_weight == 0:
+            valid_targets = [n for n in existing_nodes if G.degree(n) < max_node_degree]
+            if not valid_targets:
+                break # Cannot add more edges without violating constraints
+            probabilities = np.ones(len(valid_targets)) / len(valid_targets)
+            target_pool = valid_targets
+        else:
+            probabilities = weights / total_weight
+            target_pool = existing_nodes
+        num_targets = min(m, len(np.nonzero(probabilities)[0]) if total_weight > 0 else len(target_pool))
+        if num_targets > 0:
+            targets = np.random.choice(target_pool, size=num_targets, replace=False, p=probabilities if total_weight > 0 else None)
+            for target in targets:
+                G.add_edge(new_node, target)
+    return G
