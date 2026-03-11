@@ -3,6 +3,8 @@ from scipy.optimize import minimize
 from qmodels.qaoa import QAOA
 import networkx as nx
 import numpy as np
+import random
+
 
 class RQAOA:
     def __init__(self, depth, H, Q, G):      

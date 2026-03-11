@@ -54,7 +54,7 @@ def plot_degree_distribution(G: nx.Graph, gamma: float):
     plt.tight_layout()
     plt.savefig("./utils/figures/degree_distribution.png", dpi=300)
 
-def plot_energy_landscape(fun, ax=None, save_fig=False):
+def plot_energy_landscape(fun, ax=None, save_fig=False, index=""):
     if ax is None:
         ax = plt.gca()
     fig = ax.figure 
@@ -77,7 +77,7 @@ def plot_energy_landscape(fun, ax=None, save_fig=False):
     ax.set_ylabel(r"$\gamma$")
     fig.colorbar(im, ax=ax, label="Energy")
     if save_fig:
-        plt.savefig("./utils/figures/energy_landscape.png", dpi=300)
+        plt.savefig(f"./utils/figures/energy_landscape_{index}.png", dpi=300)
         plt.close()
     return im
     
