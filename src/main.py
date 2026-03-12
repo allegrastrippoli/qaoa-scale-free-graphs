@@ -13,6 +13,7 @@ if __name__ == "__main__":
     p = 1
     graphs = load_all_graphs()
     compute_optimized_angles(graphs, p)
-
+    gammas, betas = load_gamma_beta()
+    plot_optimized_angles(gammas, betas)
         
 

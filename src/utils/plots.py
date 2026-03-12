@@ -81,12 +81,12 @@ def load_all_graphs(directory="./utils/graphs"):
 def compute_optimized_angles(graphs, p, filename="./utils/csv/optimized_angles.csv"):
     with open(filename, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["gamma", "beta"])
-        for G in graphs:
+        writer.writerow(["id", "gamma", "beta"])
+        for i, G in enumerate(graphs):
             S = Simulation(G, p)
             S.run()
             gamma, beta = S.angles
-            writer.writerow([gamma, beta])
+            writer.writerow([i, gamma, beta])
 
 def generate_graphs(num_graphs, num_nodes, gamma, 
                     csv_filename="./utils/csv/graphs_info.csv",
@@ -224,6 +224,13 @@ def plot_subgraphs_maxns(G, S, top_n):
     edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges)
     plot_full_graph(G, S, node_colors, edge_colors)
     plot_top_n_subgraphs(G, S, edge_color_map)    
+
+
+def load_gamma_beta(csv_file="./utils/csv/optimized_angles.csv"):
+    df = pd.read_csv(csv_file)
+    gammas = df["gamma"].to_numpy()
+    betas = df["beta"].to_numpy()
+    return gammas, betas
 
 def plot_optimized_angles(x, y):
     plt.figure(figsize=(8, 6))
