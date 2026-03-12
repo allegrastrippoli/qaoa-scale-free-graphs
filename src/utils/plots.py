@@ -1,8 +1,11 @@
 from collections import Counter
 import matplotlib.pyplot as plt
 import networkx as nx
+from utils.generate import *
+from pathlib import Path
 import numpy as np
 import pandas as pd
+from qmodels.lightcones import Simulation
 import csv
 
 def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
@@ -67,6 +70,39 @@ def compute_and_save_energy(fun, filename="./utils/csv/energy_landscape.csv"):
             for beta in betas:
                 energy = fun([gamma, beta])
                 writer.writerow([gamma, beta, energy])
+                
+def load_all_graphs(directory="./utils/graphs"):
+    graphs = []
+    for gml_file in Path(directory).glob("*.gml"):
+        G = nx.read_gml(gml_file)
+        graphs.append(G)
+    return graphs
+
+def compute_optimized_angles(graphs, p, filename="./utils/csv/optimized_angles.csv"):
+    with open(filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["gamma", "beta"])
+        for G in graphs:
+            S = Simulation(G, p)
+            S.run()
+            gamma, beta = S.angles
+            writer.writerow([gamma, beta])
+
+def generate_graphs(num_graphs, num_nodes, gamma, 
+                    csv_filename="./utils/csv/graphs_info.csv",
+                    graph_dir="./utils/graphs"):
+
+    with open(csv_filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "nodes", "edges", "connected", "max degree", "min degree", "avg degree", "max neighborhood size", "graph_file"])
+        for i in range(num_graphs):
+            G = generate_bounded_scale_free_graph(num_nodes, gamma)
+            degrees = [G.degree(n) for n in G.nodes()]
+            max_ns, max_edge = max_neighborhood_size(G)
+            graph_path = f"{graph_dir}/graph_{i}.gml"
+            nx.write_gml(G, graph_path)
+            writer.writerow([i, G.number_of_nodes(), G.number_of_edges(), nx.is_connected(G), max(degrees), min(degrees), f"{np.mean(degrees):.2f}", max_ns, graph_path])
+                
 
 def plot_energy_from_csv(filename, ax=None, save_fig=False, index=""):
     if ax is None:
