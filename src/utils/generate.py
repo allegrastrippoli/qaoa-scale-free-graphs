@@ -1,7 +1,6 @@
 import networkx as nx
 import numpy as np
 from utils.utils import *
-import csv 
 
 def relabel_white_black(G: nx.Graph, n: int) -> nx.Graph:
     mapping = {}
@@ -102,18 +101,3 @@ def generate_bounded_scale_free_graph(num_nodes: int, gamma: float, max_node_deg
             for target in targets:
                 G.add_edge(new_node, target)
     return G
-
-def generate_graphs(num_graphs, num_nodes, gamma, 
-                    csv_filename="./utils/csv/graphs_info.csv",
-                    graph_dir="./utils/graphs"):
-
-    with open(csv_filename, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["id", "nodes", "edges", "connected", "max degree", "min degree", "avg degree", "max neighborhood size", "graph_file"])
-        for i in range(num_graphs):
-            G = generate_bounded_scale_free_graph(num_nodes, gamma)
-            degrees = [G.degree(n) for n in G.nodes()]
-            max_ns, max_edge = max_neighborhood_size(G)
-            graph_path = f"{graph_dir}/graph_{i}.gml"
-            nx.write_gml(G, graph_path)
-            writer.writerow([i, G.number_of_nodes(), G.number_of_edges(), nx.is_connected(G), max(degrees), min(degrees), f"{np.mean(degrees):.2f}", max_ns, graph_path])

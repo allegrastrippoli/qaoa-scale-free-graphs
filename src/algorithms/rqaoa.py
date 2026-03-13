@@ -1,5 +1,5 @@
 from scipy.optimize import minimize
-from qmodels.qaoa import QAOA
+from algorithms.qaoa import QAOA
 from utils.operators import tensor, ZZ
 from collections import deque
 import networkx as nx

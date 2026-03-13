@@ -52,7 +52,6 @@ def edge_neighborhood_subgraph(G: nx.Graph, edge: tuple) -> nx.Graph:
     nodes.update(G.neighbors(v))
     return G.subgraph(nodes).copy()
 
-
 def get_colors(G, top_n, top_n_edges):   
     cmap = plt.get_cmap("tab10", top_n)
     edge_color_map = {edge: cmap(i) for i, edge in enumerate(top_n_edges)}

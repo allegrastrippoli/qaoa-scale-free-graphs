@@ -1,8 +1,7 @@
 from utils.utils import *
-from utils.hamiltonians import graph_to_hamiltonian
-from utils.operators import ZZ
+from utils.operators import ZZ, graph_to_hamiltonian
 from scipy.optimize import minimize
-from qmodels.qaoa import QAOA
+from algorithms.qaoa import QAOA
 import networkx as nx
 import numpy as np
 import random
@@ -36,7 +35,7 @@ class LightCone:
                 olap+= np.absolute(state[i])**2
         return olap
     
-class Simulation:
+class LCQAOA:
     def __init__(self, G, p):
         self.G = G
         self.p = p
