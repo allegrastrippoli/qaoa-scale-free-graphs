@@ -1,42 +1,9 @@
 from collections import Counter
+from utils.utils import *
 import matplotlib.pyplot as plt
 import networkx as nx
-from utils.generate import *
-from pathlib import Path
 import numpy as np
 import pandas as pd
-from qmodels.lightcones import Simulation
-import csv
-
-def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
-    a, b = edge
-    degree_a = G.degree(a)
-    degree_b = G.degree(b)
-    neighbors_a = set(G.neighbors(a))
-    neighbors_b = set(G.neighbors(b))
-    common_neighbors = len(neighbors_a & neighbors_b)
-    return degree_a + degree_b - common_neighbors
-
-def max_neighborhood_size(G: nx.Graph) -> tuple[int, tuple]:
-    if G.number_of_edges() == 0:
-        return 0, None
-    max_size = 0
-    max_edge = None
-    for edge in G.edges():
-        size = neighborhood_size(G, edge)
-        if size > max_size:
-            max_size = size
-            max_edge = edge
-    return max_size, max_edge
-
-def top_n_max_neighborhood_size(G: nx.Graph, n: int):
-    if G.number_of_edges() == 0:
-        return 0, None
-    sizes = []
-    for edge in G.edges():
-        sizes.append((edge, neighborhood_size(G, edge)))
-    top_n_sizes = sorted(sizes, key=lambda x:x[1])[-n:]
-    return [edge for edge, _ in top_n_sizes]
 
 def plot_degree_distribution(G: nx.Graph, gamma: float):
     degrees = [G.degree(n) for n in G.nodes()]
@@ -59,51 +26,7 @@ def plot_degree_distribution(G: nx.Graph, gamma: float):
     plt.tight_layout()
     plt.savefig("./utils/figures/degree_distribution.png", dpi=300)
 
-def compute_and_save_energy(fun, filename="./utils/csv/energy_landscape.csv"):
-    n_points = 100
-    gammas = np.linspace(0, 2*np.pi, n_points)
-    betas = np.linspace(0, np.pi/2, n_points)
-    with open(filename, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["gamma", "beta", "energy"])
-        for gamma in gammas:
-            for beta in betas:
-                energy = fun([gamma, beta])
-                writer.writerow([gamma, beta, energy])
-                
-def load_all_graphs(directory="./utils/graphs"):
-    graphs = []
-    for gml_file in Path(directory).glob("*.gml"):
-        G = nx.read_gml(gml_file)
-        graphs.append(G)
-    return graphs
-
-def compute_optimized_angles(graphs, p, filename="./utils/csv/optimized_angles.csv"):
-    with open(filename, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["id", "gamma", "beta"])
-        for i, G in enumerate(graphs):
-            S = Simulation(G, p)
-            S.run()
-            gamma, beta = S.angles
-            writer.writerow([i, gamma, beta])
-
-def generate_graphs(num_graphs, num_nodes, gamma, 
-                    csv_filename="./utils/csv/graphs_info.csv",
-                    graph_dir="./utils/graphs"):
-
-    with open(csv_filename, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["id", "nodes", "edges", "connected", "max degree", "min degree", "avg degree", "max neighborhood size", "graph_file"])
-        for i in range(num_graphs):
-            G = generate_bounded_scale_free_graph(num_nodes, gamma)
-            degrees = [G.degree(n) for n in G.nodes()]
-            max_ns, max_edge = max_neighborhood_size(G)
-            graph_path = f"{graph_dir}/graph_{i}.gml"
-            nx.write_gml(G, graph_path)
-            writer.writerow([i, G.number_of_nodes(), G.number_of_edges(), nx.is_connected(G), max(degrees), min(degrees), f"{np.mean(degrees):.2f}", max_ns, graph_path])
-                
-
+    
 def plot_energy_from_csv(filename, ax=None, save_fig=False, index=""):
     if ax is None:
         ax = plt.gca()
@@ -149,14 +72,8 @@ def plot_energy_landscape(fun, ax=None, save_fig=False, index=""):
         plt.close()
     return im
     
-def edge_neighborhood_subgraph(G: nx.Graph, edge: tuple) -> nx.Graph:
-    u, v = edge
-    nodes = {u, v}
-    nodes.update(G.neighbors(u))
-    nodes.update(G.neighbors(v))
-    return G.subgraph(nodes).copy()
 
-def draw_edge_subgraph(G_sub, edge, color):
+def plot_edge_subgraph(G_sub, edge, color):
     pos = nx.spring_layout(G_sub)
     edge_colors = []
     widths = []
@@ -169,24 +86,6 @@ def draw_edge_subgraph(G_sub, edge, color):
             widths.append(1.5)
     nx.draw(G_sub, pos=pos, node_color=color, edge_color=edge_colors, node_size=180, width=widths, with_labels=True)
 
-def get_colors(G, top_n, top_n_edges):   
-    cmap = plt.get_cmap("tab10", top_n)
-    edge_color_map = {edge: cmap(i) for i, edge in enumerate(top_n_edges)}
-    edge_colors = []
-    for edge in G.edges():
-        if edge in edge_color_map:
-            edge_colors.append(edge_color_map[edge])
-        elif (edge[1], edge[0]) in edge_color_map:
-            edge_colors.append(edge_color_map[(edge[1], edge[0])])
-        else:
-            edge_colors.append("black")
-    node_color_map = {node: "black" for node in G.nodes()}
-    for (u, v), color in edge_color_map.items():
-        node_color_map[u] = color
-        node_color_map[v] = color
-    node_colors = [node_color_map[node] for node in G.nodes()]
-    return edge_color_map, edge_colors, node_color_map, node_colors
-    
 def plot_full_graph(G, S, node_colors, edge_colors):
     pos = nx.spring_layout(G)    
     plt.figure(figsize=(8, 8))
@@ -224,13 +123,6 @@ def plot_subgraphs_maxns(G, S, top_n):
     edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges)
     plot_full_graph(G, S, node_colors, edge_colors)
     plot_top_n_subgraphs(G, S, edge_color_map)    
-
-
-def load_gamma_beta(csv_file="./utils/csv/optimized_angles.csv"):
-    df = pd.read_csv(csv_file)
-    gammas = df["gamma"].to_numpy()
-    betas = df["beta"].to_numpy()
-    return gammas, betas
 
 def plot_optimized_angles(x, y):
     plt.figure(figsize=(8, 6))

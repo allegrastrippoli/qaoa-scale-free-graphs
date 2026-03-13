@@ -1,4 +1,4 @@
-from utils.utils import graph_to_hamiltonian
+from collections import Counter
 from scipy.optimize import minimize
 import numpy as np
 import random 
@@ -140,3 +140,13 @@ class QAOA:
         self.angles = res.x
         self.best_bitstring = np.binary_repr(int(np.argmax(np.abs(self.f_state))), width=self.n)
      #__________________________________________________________________________________________________________
+
+    def sample(self, state, n, shots=100, return_probs=False):
+        state = state.reshape(-1)
+        probs = np.abs(state) ** 2
+        indices = np.random.choice(len(probs), size=shots, p=probs)
+        most_common_index = Counter(indices).most_common(1)
+        bitstring = format(most_common_index[0][0], f"0{n}b")
+        if return_probs:
+            return bitstring, probs
+        return bitstring

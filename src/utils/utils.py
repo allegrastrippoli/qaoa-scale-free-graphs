@@ -1,52 +1,5 @@
-from collections import Counter
-
+import matplotlib as plt
 import networkx as nx
-import numpy as np
-
-# Function that executes a tensor product over an ordered list of objects(arrays or matrices)
-# specified by the argument "k".
-def tensor(k):
-    t = k[0]
-    i = 1
-    while i < len(k) :
-        t = np.kron(t,k[i])
-        i+=1
-    return t
-
-# Each edge contributes with either +1 (the edge is not cut) or -1 (the edge is cut) 
-def graph_to_hamiltonian(G,n, ising=True): 
-    H = np.zeros((2**n), dtype = 'float64') 
-    Z = np.array([1,-1],dtype = 'float64')
-    for i in range(n):
-        j = i+1
-        while j<n: 
-            k = [[1,1]]*n 
-            k = np.array(k,dtype = 'float64')
-            if G[i][j] !=0: 
-                k[i] = Z
-                k[j] = Z
-                if ising:
-                    H+= tensor(k)*G[i][j] 
-                else:
-                    zz = tensor(k) 
-                    H += 0.5 * G[i][j] * (1 - zz) 
-            j+=1
-    return H
-
-
-def ZZ(G, i, j, n, ising=True): 
-    Z = np.array([1,-1],dtype = 'float64')
-    k = [[1,1]]*n 
-    k = np.array(k,dtype = 'float64')    
-    if G[i][j] != 0: 
-        k[i] = Z
-        k[j] = Z
-        if ising:
-            return tensor(k)*G[i][j] 
-        else:
-            zz = tensor(k) 
-            return 0.5 * G[i][j] * (1 - zz) 
-
 
 def compute_subgraph_for_edge(G, u, v):
     nodes =  set(G.neighbors(u)) | set(G.neighbors(v))
@@ -62,42 +15,59 @@ def compute_subgraph_for_edge(G, u, v):
     v_sub = nx.relabel_nodes(v_sub, mapping)
     return mapping, v_sub, mapping[u], mapping[v]
 
-# Generates a random k-sat instance
-def k_sat_instance (n,k,m):
-    instance=np.array([])
-    for mind in range(m):
-        clause = rng.choice(n, size=k, replace=False)
-        instance=np.append(instance,clause)
-    instance=(instance+1) *((-1)**np.random.randint(2,size=k*m))
-    return  instance.reshape(m,k)
+def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
+    a, b = edge
+    degree_a = G.degree(a)
+    degree_b = G.degree(b)
+    neighbors_a = set(G.neighbors(a))
+    neighbors_b = set(G.neighbors(b))
+    common_neighbors = len(neighbors_a & neighbors_b)
+    return degree_a + degree_b - common_neighbors
 
-# Converts the k-sat instance into a Hamiltonian
-def H_sat(inst,n):
-    I=[1,1]
-    k0=[1,0]
-    k1=[0,1]
-    inst_tp=0
-    for mind in range(inst.shape[0]):
-        clause=inst[mind]
-        clause_list=[I]*n
-        for lind in range(inst.shape[1]):
-            if clause[lind]<0:
-                clause_list[int(np.abs(clause[lind])-1)]=k1
-            else:
-                clause_list[int(np.abs(clause[lind])-1)]=k0
-        clause_tp=tensor(clause_list)
-        inst_tp=inst_tp+clause_tp
-    return np.array(inst_tp)
+def max_neighborhood_size(G: nx.Graph) -> tuple[int, tuple]:
+    if G.number_of_edges() == 0:
+        return 0, None
+    max_size = 0
+    max_edge = None
+    for edge in G.edges():
+        size = neighborhood_size(G, edge)
+        if size > max_size:
+            max_size = size
+            max_edge = edge
+    return max_size, max_edge
 
-def sample_from_state(state, n, shots=100, return_probs=False):
-    state = state.reshape(-1)
-    probs = np.abs(state) ** 2
-    indices = np.random.choice(len(probs), size=shots, p=probs)
-    most_common_index = Counter(indices).most_common(1)
-    bitstring = format(most_common_index[0][0], f"0{n}b")
-    if return_probs:
-        return bitstring, probs
-    return bitstring
+def top_n_max_neighborhood_size(G: nx.Graph, n: int):
+    if G.number_of_edges() == 0:
+        return 0, None
+    sizes = []
+    for edge in G.edges():
+        sizes.append((edge, neighborhood_size(G, edge)))
+    top_n_sizes = sorted(sizes, key=lambda x:x[1])[-n:]
+    return [edge for edge, _ in top_n_sizes]
+
+def edge_neighborhood_subgraph(G: nx.Graph, edge: tuple) -> nx.Graph:
+    u, v = edge
+    nodes = {u, v}
+    nodes.update(G.neighbors(u))
+    nodes.update(G.neighbors(v))
+    return G.subgraph(nodes).copy()
 
 
-
+def get_colors(G, top_n, top_n_edges):   
+    cmap = plt.get_cmap("tab10", top_n)
+    edge_color_map = {edge: cmap(i) for i, edge in enumerate(top_n_edges)}
+    edge_colors = []
+    for edge in G.edges():
+        if edge in edge_color_map:
+            edge_colors.append(edge_color_map[edge])
+        elif (edge[1], edge[0]) in edge_color_map:
+            edge_colors.append(edge_color_map[(edge[1], edge[0])])
+        else:
+            edge_colors.append("black")
+    node_color_map = {node: "black" for node in G.nodes()}
+    for (u, v), color in edge_color_map.items():
+        node_color_map[u] = color
+        node_color_map[v] = color
+    node_colors = [node_color_map[node] for node in G.nodes()]
+    return edge_color_map, edge_colors, node_color_map, node_colors
+    

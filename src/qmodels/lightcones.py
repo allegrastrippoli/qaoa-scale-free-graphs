@@ -1,6 +1,7 @@
-from utils.utils import graph_to_hamiltonian
+from utils.utils import *
+from utils.hamiltonians import graph_to_hamiltonian
+from utils.operators import ZZ
 from scipy.optimize import minimize
-from utils.utils import compute_subgraph_for_edge, ZZ
 from qmodels.qaoa import QAOA
 import networkx as nx
 import numpy as np
@@ -49,7 +50,7 @@ class Simulation:
             total_energy += lc.expectation(angles)
         return total_energy
     
-    def sample_from_expectations(self, angles, shots=100):
+    def sample(self, angles, shots=100):
         edge_weights = {}
         for lc in self.light_cones:
             expectation = lc.expectation(angles)

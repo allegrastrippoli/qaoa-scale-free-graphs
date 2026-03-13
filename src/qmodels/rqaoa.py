@@ -1,6 +1,6 @@
-from utils.utils import tensor, ZZ
 from scipy.optimize import minimize
 from qmodels.qaoa import QAOA
+from utils.operators import tensor, ZZ
 from collections import deque
 import networkx as nx
 import numpy as np
@@ -122,7 +122,7 @@ class RQAOA:
         self.remove_node(j)
         return self.rqaoa(res.x)
     
-    def compute_bitstring(self, constraints):
+    def sample(self, constraints):
         # print(f"Correlation map: {constraints}")
         assignment = self.find_assignment(constraints)
         maxcut = [assignment[key] for key in sorted(assignment)]
