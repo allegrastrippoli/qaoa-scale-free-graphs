@@ -17,6 +17,7 @@ class RQAOA:
         self.mapping = {i: i for i in list(self.G.nodes)}  # The arguments are “mappings”, maps the ids of the initial nodes to the new ids,
                                                                  # assigned after removing nodes during recursion. 
         self.constraints = {}                              # "constraints", stores correlations between edges
+        self.history = []
         
     def expectation(self, Z_iZ_j, angles):
         state = self.Q.qaoa_ansatz(angles)
@@ -87,6 +88,17 @@ class RQAOA:
                     H += tensor(k) * G_arr[i][j] * sgn
         return H
     
+    def save_history(self, angles):
+        ground_state = format(np.argmin(self.Q.H), f"0{len(self.G.nodes)}b")
+        overlap = self.overlap(angles)
+
+        self.history.append({
+            "num_nodes": len(self.G.nodes),
+            "ground_state": ground_state,
+            "overlap": overlap,
+            "angles": angles.copy()
+        })
+    
     def rqaoa(self, angles):
         def is_terminal():
             for comp in nx.connected_components(self.G):
@@ -103,11 +115,11 @@ class RQAOA:
                     exp = self.expectation(Z_iZ_j, angles)
                     self.constraints[(self.mapping[i], self.mapping[j])] = np.sign(exp)
         if is_terminal():
-            # print(f"Ground state: {format(np.argmin(Q.H), f"0{len(G.nodes)}b")}, Overlap: {self.overlap(Q, Q.H, angles)}") 
+            self.save_history(angles)
             extract_terminal_constraints(angles)
             self.angles = angles
             return 
-        # print(f"Ground state: {format(np.argmin(Q.H), f"0{len(G.nodes)}b")}, Overlap: {self.overlap(Q, Q.H, angles)}") 
+        self.save_history(angles)
         magnitude = {}
         for (i,j) in self.G.edges:
             Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
@@ -115,7 +127,6 @@ class RQAOA:
         (i,j), max_magn = max(magnitude.items(), key=lambda item: abs(item[1]))
         s = np.sign(max_magn) 
         self.constraints[(self.mapping[i],self.mapping[j])] = s
-        # print(f"Added constraint: {(mapping[i],mapping[j]), s} new values {i, j,  s}")
         self.H = self.reduce_hamiltonian(i, j, s)    
         self.Q = QAOA(self.p, self.H)  
         bds= [(0,2*np.pi+0.1)]*self.p + [(0,1*np.pi+0.1)]*self.p
@@ -123,12 +134,6 @@ class RQAOA:
         self.remove_node(j)
         return self.rqaoa(res.x)
     
-    def sample(self, constraints):
-        # print(f"Correlation map: {constraints}")
-        assignment = self.find_assignment(constraints)
-        maxcut = [assignment[key] for key in sorted(assignment)]
-        return  ''.join(map(str, maxcut))
-      
     def run(self, initial_angles=None):
         if initial_angles is None:
             initial_angles=[]
@@ -138,6 +143,9 @@ class RQAOA:
                 else:
                     initial_angles.append(random.uniform(0,np.pi))
         self.rqaoa(initial_angles)    
+        assignment = self.find_assignment(self.constraints)
+        maxcut = [assignment[key] for key in sorted(assignment)]
+        self.best_bitstring = ''.join(map(str, maxcut))
 
     def find_assignment(self, constraints):
         assignment = {}
