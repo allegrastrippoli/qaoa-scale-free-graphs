@@ -15,7 +15,7 @@ class RQAOA:
         self.p = depth
 
         self.mapping = {i: i for i in list(self.G.nodes)}  # The arguments are “mappings”, maps the ids of the initial nodes to the new ids,
-                                                           # assigned after removing nodes during recursion. 
+                                                                 # assigned after removing nodes during recursion. 
         self.constraints = {}                              # "constraints", stores correlations between edges
         
     def expectation(self, Z_iZ_j, angles):
@@ -105,7 +105,8 @@ class RQAOA:
         if is_terminal():
             # print(f"Ground state: {format(np.argmin(Q.H), f"0{len(G.nodes)}b")}, Overlap: {self.overlap(Q, Q.H, angles)}") 
             extract_terminal_constraints(angles)
-            return self.constraints
+            self.angles = angles
+            return 
         # print(f"Ground state: {format(np.argmin(Q.H), f"0{len(G.nodes)}b")}, Overlap: {self.overlap(Q, Q.H, angles)}") 
         magnitude = {}
         for (i,j) in self.G.edges:
@@ -136,7 +137,7 @@ class RQAOA:
                     initial_angles.append(random.uniform(0,2*np.pi))
                 else:
                     initial_angles.append(random.uniform(0,np.pi))
-        return self.rqaoa(initial_angles)    
+        self.rqaoa(initial_angles)    
 
     def find_assignment(self, constraints):
         assignment = {}

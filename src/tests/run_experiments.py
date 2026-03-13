@@ -1,4 +1,3 @@
-from algorithms.algofactory import AlgorithmFactory
 from utils.utils import *
 from utils.plots import  *
 from utils.generate import *
