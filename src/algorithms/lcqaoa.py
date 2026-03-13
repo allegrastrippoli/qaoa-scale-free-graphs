@@ -42,6 +42,7 @@ class LCQAOA:
         self.light_cones = []
         for u, v in self.G.edges:
             self.light_cones.append(LightCone(G, u, v, p))
+        self.history = []
 
     def sum_of_expectations(self, angles):
         total_energy = 0.0
@@ -49,10 +50,10 @@ class LCQAOA:
             total_energy += lc.expectation(angles)
         return total_energy
     
-    def sample(self, angles, shots=100):
+    def find_bitstring(self, shots=100):
         edge_weights = {}
         for lc in self.light_cones:
-            expectation = lc.expectation(angles)
+            expectation = lc.expectation(self.angles)
             # If min(expval), prob_different = 1.0
             # If max(expval), prob_different = 0.0
             # If expval = 0, prob_different = 0.5
@@ -89,6 +90,17 @@ class LCQAOA:
             samples[bitstring] = samples.get(bitstring, 0) + 1        
         return max(samples.items(), key=lambda x:x[1])[0]
     
+    def save_history(self):
+        for lc in self.light_cones:
+            overlap = lc.overlap(self.angles)
+            ground_state = format(np.argmin(lc.H), f"0{lc.n_sub}b")
+            self.history.append({
+                "edge": (lc.u, lc.v),
+                "ground state": ground_state,
+                "overlap": overlap,
+                "angles": self.angles
+            })
+        
     def run(self): 
         initial_angles=[]
         bds= [(0,2*np.pi+0.1)]*self.p + [(0,1*np.pi+0.1)]*self.p
@@ -98,4 +110,6 @@ class LCQAOA:
             else:
                 initial_angles.append(random.uniform(0,np.pi))
         res = minimize(self.sum_of_expectations,initial_angles,method='L-BFGS-B', jac=None, bounds=bds, options={'maxiter': 1000})
-        self.angles = res.x
+        self.angles = res.x  
+        self.best_bitstring = self.find_bitstring()
+        self.save_history()
