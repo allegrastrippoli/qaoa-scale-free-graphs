@@ -1,10 +1,10 @@
-from utils.utils import graph_to_hamiltonian, reduce_hamiltonian, remove_node, find_assignment, ZZ
+from utils.utils import tensor, ZZ
 from scipy.optimize import minimize
 from qmodels.qaoa import QAOA
+from collections import deque
 import networkx as nx
 import numpy as np
 import random
-
 
 class RQAOA:
     def __init__(self, depth, H, Q, G):      
@@ -32,6 +32,60 @@ class RQAOA:
             if self.H[i] == g_ener:
                 olap += np.absolute(state[i])**2
         return olap
+
+    def update_mapping_after_removal(self, removed_id):
+        new_mapping = {}
+        for new_id, original_id in self.mapping.items():
+            if new_id < removed_id:
+                new_mapping[new_id] = original_id
+            elif new_id > removed_id:
+                new_mapping[new_id - 1] = original_id
+        self.mapping = new_mapping
+
+    def remove_node(self, j):
+        G_new = self.G.copy()
+        G_new.remove_node(j)
+        old_nodes = list(G_new.nodes)
+        labels = {old: new for new, old in enumerate(old_nodes)}
+        G_new = nx.relabel_nodes(G_new, labels)
+        self.update_mapping_after_removal(j)
+        self.G = G_new
+
+    def reduce_hamiltonian(self, p, q, sgn):
+        n = len(self.G.nodes)
+        G_arr = nx.to_numpy_array(self.G)
+        dim = 2**(n-1)
+        H = np.zeros((dim), dtype='float64')
+        Z = np.array([1, -1], dtype='float64')
+        def new_index(i):
+            if i < q:
+                return i
+            elif i > q:
+                return i - 1
+            else:
+                raise ValueError("index q eliminated")
+        for i in range(n):
+            for j in range(i+1, n):
+                k = [[1,1]]*(n-1) 
+                k = np.array(k,dtype = 'float64')
+                if G_arr[i][j] == 0:
+                    continue
+                if (i == p and j == q) or (i == q and j == p):
+                    k = [1] * 2**(n-1)
+                    k = np.array(k,dtype = 'float64')  
+                    H += G_arr[i][j] * sgn * k
+                elif i != q and j != q:
+                    k[new_index(i)] = Z
+                    k[new_index(j)] = Z
+                    H += tensor(k) * G_arr[i][j]
+                else:
+                    other = j if i == q else i
+                    if other == p:
+                        continue  
+                    k[new_index(p)] = Z
+                    k[new_index(other)] = Z
+                    H += tensor(k) * G_arr[i][j] * sgn
+        return H
     
     def rqaoa(self, angles):
         def is_terminal():
@@ -61,16 +115,16 @@ class RQAOA:
         s = np.sign(max_magn) 
         self.constraints[(self.mapping[i],self.mapping[j])] = s
         # print(f"Added constraint: {(mapping[i],mapping[j]), s} new values {i, j,  s}")
-        self.H = reduce_hamiltonian(nx.to_numpy_array(self.G), len(self.G.nodes), i, j, s)    
+        self.H = self.reduce_hamiltonian(i, j, s)    
         self.Q = QAOA(self.p, self.H)  
         bds= [(0,2*np.pi+0.1)]*self.p + [(0,1*np.pi+0.1)]*self.p
         res = minimize(self.Q.expectation,angles,method='L-BFGS-B', jac=None, bounds=bds, options={'maxiter': 1000})
-        self.mapping, self.G = remove_node(self.G, j, self.mapping)
+        self.remove_node(j)
         return self.rqaoa(res.x)
     
     def compute_bitstring(self, constraints):
         # print(f"Correlation map: {constraints}")
-        assignment = find_assignment(self.initial_graph, constraints)
+        assignment = self.find_assignment(constraints)
         maxcut = [assignment[key] for key in sorted(assignment)]
         return  ''.join(map(str, maxcut))
       
@@ -84,4 +138,27 @@ class RQAOA:
                     initial_angles.append(random.uniform(0,np.pi))
         return self.rqaoa(initial_angles)    
 
-
+    def find_assignment(self, constraints):
+        assignment = {}
+        for start in self.initial_graph.nodes:
+            if start in assignment:
+                continue
+            assignment[start] = 0
+            queue = deque([start])
+            while queue:
+                u = queue.popleft()
+                for v in self.initial_graph.neighbors(u):
+                    if (u, v) in constraints:
+                        sign = constraints[(u, v)]
+                    elif (v, u) in constraints:
+                        sign = constraints[(v, u)]
+                    else:
+                        continue
+                    expected = assignment[u] if sign == 1 else 1 - assignment[u]
+                    if v not in assignment:
+                        assignment[v] = expected
+                        queue.append(v)
+                    else:
+                        if assignment[v] != expected:
+                            raise ValueError(f"Constraints are inconsistent node: {u}, {assignment[v]} != {expected}. Constraints {constraints}")
+        return assignment

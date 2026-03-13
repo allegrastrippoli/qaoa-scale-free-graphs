@@ -1,5 +1,5 @@
 from collections import Counter
-from collections import deque
+
 import networkx as nx
 import numpy as np
 
@@ -99,78 +99,5 @@ def sample_from_state(state, n, shots=100, return_probs=False):
         return bitstring, probs
     return bitstring
 
-def find_assignment(G, constraints):
-    assignment = {}
-    for start in G.nodes:
-        if start in assignment:
-            continue
-        assignment[start] = 0
-        queue = deque([start])
-        while queue:
-            u = queue.popleft()
-            for v in G.neighbors(u):
-                if (u, v) in constraints:
-                    sign = constraints[(u, v)]
-                elif (v, u) in constraints:
-                    sign = constraints[(v, u)]
-                else:
-                    continue
-                expected = assignment[u] if sign == 1 else 1 - assignment[u]
-                if v not in assignment:
-                    assignment[v] = expected
-                    queue.append(v)
-                else:
-                    if assignment[v] != expected:
-                        raise ValueError(f"Constraints are inconsistent node: {u}, {assignment[v]} != {expected}. Constraints {constraints}")
-    return assignment
 
-def reduce_hamiltonian(G, n, p, q, sgn):
-    dim = 2**(n-1)
-    H = np.zeros((dim), dtype='float64')
-    Z = np.array([1, -1], dtype='float64')
-    def new_index(i):
-        if i < q:
-            return i
-        elif i > q:
-            return i - 1
-        else:
-            raise ValueError("index q eliminated")
-    for i in range(n):
-        for j in range(i+1, n):
-            k = [[1,1]]*(n-1) 
-            k = np.array(k,dtype = 'float64')
-            if G[i][j] == 0:
-                continue
-            if (i == p and j == q) or (i == q and j == p):
-                k = [1] * 2**(n-1)
-                k = np.array(k,dtype = 'float64')  
-                H += G[i][j] * sgn * k
-            elif i != q and j != q:
-                k[new_index(i)] = Z
-                k[new_index(j)] = Z
-                H += tensor(k) * G[i][j]
-            else:
-                other = j if i == q else i
-                if other == p:
-                    continue  
-                k[new_index(p)] = Z
-                k[new_index(other)] = Z
-                H += tensor(k) * G[i][j] * sgn
-    return H
 
-def update_mapping_after_removal(mapping, removed_id):
-    new_mapping = {}
-    for new_id, original_id in mapping.items():
-        if new_id < removed_id:
-            new_mapping[new_id] = original_id
-        elif new_id > removed_id:
-            new_mapping[new_id - 1] = original_id
-    return new_mapping
-
-def remove_node(G, j, mapping):
-    G_new = G.copy()
-    G_new.remove_node(j)
-    old_nodes = list(G_new.nodes)
-    labels = {old: new for new, old in enumerate(old_nodes)}
-    G_new = nx.relabel_nodes(G_new, labels)
-    return update_mapping_after_removal(mapping, j), G_new
