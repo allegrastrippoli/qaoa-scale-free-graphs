@@ -1,13 +1,36 @@
-from utils.utils import *
+from algorithms.algofactory import AlgorithmFactory
 from utils.plots import  *
 from utils.generate import *
 from utils.file_utils import *
 from algorithms.lcqaoa import *
 import networkx as nx
 import numpy as np
+from paths import *
 
-    
-def test_energy_landscape_regular_graph(ising):
+def run_example_graph():
+    p = 1 
+    G = nx.Graph()
+    G.add_nodes_from(range(4))
+    G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
+    q = AlgorithmFactory.create("qaoa", G, p)
+    q.run()
+    print(f"{q.best_bitstring=}\n",
+          f"{q.angles=}\n", 
+          f"{q.olap=}\n")
+    print("---------------------------------------------------------")
+    rq = AlgorithmFactory.create("rqaoa", G, p)
+    rq.run()
+    print(f"{rq.best_bitstring=}\n",
+          f"{rq.mapping=}\n", 
+          f"{rq.constraints=}\n", 
+          f"{rq.history=}\n")
+    print("---------------------------------------------------------")
+    lc = AlgorithmFactory.create("lcqaoa", G, p)
+    lc.run()
+    print(f"{lc.best_bitstring=}\n",
+          f"{lc.history=}")
+
+def run_energy_landscape_regular_graph(ising):
     p = 1
     graphs = []
     G1 = nx.Graph()
@@ -26,22 +49,22 @@ def test_energy_landscape_regular_graph(ising):
         L = LightCone(G, 0, 1, p, ising=ising)
         name_str = ""
         if ising:
-            name_str = f"ising_{i}"
+            name_str = f"ising"
         else:
-            name_str = f"standard_{i}"
-        # plot_energy_landscape(L.expectation, save_fig=True, index=f"light_cone_{name_str}")
-        energy_to_csv(L.expectation)
-        plot_energy_from_csv(filename="./utils/csv/energy_landscape.csv", save_fig=True, index=f"light_cone_{name_str}")
+            name_str = f"standard"
+        energy_to_csv(L.expectation, filename=csv_energy_landscape_path(f"{name_str}{i}"))
+        gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(f"{name_str}{i}"))
+        plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(f"{name_str}{i}"), save_fig=True)
 
-def test_scale_free_graph():
-    top_n = 5
-    num_nodes = 50
-    gamma = 2.4
-    p = 1
-    G = generate_bounded_scale_free_graph(num_nodes, gamma)
-    degrees = [G.degree(n) for n in G.nodes()]
-    max_ns, max_edge = max_neighborhood_size(G)
-    print(f"Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}, Connected: {nx.is_connected(G)}, Max degree: {max(degrees)}, Min degree: {min(degrees)}, Avg degree: {np.mean(degrees):.2f}, Max neighborhood size: {max_ns}")
-    fig = plot_degree_distribution(G, gamma)
-    lc = LCQAOA(G, p)
-    plot_subgraphs_maxns(G, lc, top_n)
+# def test_example_scale_free_graph():
+#     top_n = 5
+#     num_nodes = 10
+#     gamma = 2.4
+#     p = 1
+#     G = generate_bounded_scale_free_graph(num_nodes, gamma)
+#     degrees = [G.degree(n) for n in G.nodes()]
+#     max_ns, max_edge = max_neighborhood_size(G)
+#     print(f"Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}, Connected: {nx.is_connected(G)}, Max degree: {max(degrees)}, Min degree: {min(degrees)}, Avg degree: {np.mean(degrees):.2f}, Max neighborhood size: {max_ns}")
+#     fig = plot_degree_distribution(G, gamma)
+#     lc = LCQAOA(G, p)
+#     plot_subgraphs_maxns(G, lc, top_n)

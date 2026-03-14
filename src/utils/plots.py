@@ -3,29 +3,22 @@ from utils.utils import *
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
-import pandas as pd
 
 # Given a csv file, plots the energy landscape 
-def plot_energy_from_csv(filename, ax=None, save_fig=False, index=""):
+def plot_energy_landscape(gammas, betas, E, filename, ax=None, save_fig=False):
     if ax is None:
         ax = plt.gca()
-    df = pd.read_csv(filename)
-    gammas = np.sort(df["gamma"].unique())
-    betas = np.sort(df["beta"].unique())
-    n_gamma = len(gammas)
-    n_beta = len(betas)
-    E = df["energy"].values.reshape(n_gamma, n_beta)
     im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
     ax.set_xlabel(r"$\beta$")
     ax.set_ylabel(r"$\gamma$")
     plt.colorbar(im, ax=ax, label="Energy")
     if save_fig:
-        plt.savefig(f"./utils/figures/energy_landscape_{index}.png", dpi=300)
+        plt.savefig(filename, dpi=300)
         plt.close()
     return im
 
 # Given a scale free graphs, plots the degree distribution, bot linear and log-log 
-def plot_degree_distribution(G: nx.Graph, gamma: float):
+def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     degrees = [G.degree(n) for n in G.nodes()]
     degree_counts = Counter(degrees)
     ks = sorted(degree_counts.keys())
@@ -44,11 +37,11 @@ def plot_degree_distribution(G: nx.Graph, gamma: float):
     axes[1].set_ylabel('Count')
     axes[1].set_title(f'Degree Distribution (Log-Log) - γ={gamma:.2f}')
     plt.tight_layout()
-    plt.savefig("./utils/figures/degree_distribution.png", dpi=300)
+    plt.savefig(filename, dpi=300)
 
 # Input: two numpy arrays 
 # Output: a scatterplot that also shows average and standard deviation 
-def plot_optimized_angles(x, y):
+def plot_optimized_angles(x, y, filename):
     plt.figure(figsize=(8, 6))
     x_ave = np.average(x)
     x_std = np.std(x)
@@ -62,8 +55,7 @@ def plot_optimized_angles(x, y):
     plt.title('Optimized Angles')
     plt.legend()
     plt.grid(True)
-    plt.savefig('./utils/figures/optimized_angles.png', dpi=300)
-
+    plt.savefig(filename, dpi=300)
 
 # def plot_energy_landscape(fun, ax=None, save_fig=False, index=""):
 #     if ax is None:
@@ -92,26 +84,26 @@ def plot_optimized_angles(x, y):
 #         plt.close()
 #     return im
     
-# def plot_edge_subgraph(G_sub, edge, color):
-#     pos = nx.spring_layout(G_sub)
-#     edge_colors = []
-#     widths = []
-#     for e in G_sub.edges():
-#         if e == edge or (e[1], e[0]) == edge:
-#             edge_colors.append(color)
-#             widths.append(3.0)   
-#         else:
-#             edge_colors.append(color)
-#             widths.append(1.5)
-#     nx.draw(G_sub, pos=pos, node_color=color, edge_color=edge_colors, node_size=180, width=widths, with_labels=True)
+def plot_edge_subgraph(G_sub, edge, color):
+    pos = nx.spring_layout(G_sub)
+    edge_colors = []
+    widths = []
+    for e in G_sub.edges():
+        if e == edge or (e[1], e[0]) == edge:
+            edge_colors.append(color)
+            widths.append(3.0)   
+        else:
+            edge_colors.append(color)
+            widths.append(1.5)
+    nx.draw(G_sub, pos=pos, node_color=color, edge_color=edge_colors, node_size=180, width=widths, with_labels=True)
 
-# def plot_full_graph(G, node_colors, edge_colors):
-#     pos = nx.spring_layout(G)    
-#     plt.figure(figsize=(8, 8))
-#     nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
-#     plt.savefig("./utils/figures/full_graph.png", dpi=300)
+def plot_full_graph(G, node_colors, edge_colors, filename):
+    pos = nx.spring_layout(G)    
+    plt.figure(figsize=(8, 8))
+    nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
+    plt.savefig(filename, dpi=300)
 
-# def plot_top_n_subgraphs(G, S, edge_color_map):
+# def plot_top_n_subgraphs(G, edge_color_map):
 #     num = len(edge_color_map)
 #     cols = 3
 #     rows = (num + cols - 1) // cols
@@ -128,16 +120,13 @@ def plot_optimized_angles(x, y):
 #         nx.draw(G_sub, pos=pos, ax=ax_graph, node_color=[color], edge_color=color, node_size=180, with_labels=True)
 #         ax_graph.set_title(f"Edge {edge}")
 #         u, v = edge
-#         for lc in S.light_cones:
-#             if (lc.u, lc.v) == (u, v) or (lc.v, lc.u) == (u, v):
-#                 plot_energy_landscape(lc.expectation, ax=ax_energy)
+#         # for lc in light_cones.light_cones:
+#         #     if (lc.u, lc.v) == (u, v) or (lc.v, lc.u) == (u, v):
+#         #         plot_energy_landscape(lc.expectation)
 #     plt.tight_layout()
 #     plt.savefig("./utils/figures/top_n_subgraphs.png", dpi=300)
     
-# def plot_subgraphs_maxns(G, S, top_n):
-#     top_n_edges = top_n_max_neighborhood_size(G, top_n)
-#     edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges)
-#     plot_full_graph(G, S, node_colors, edge_colors)
-#     plot_top_n_subgraphs(G, S, edge_color_map)    
-
-
+def plot_graph_subgraphs(G, top_n, top_n_edges, full_graph_filename, subgraphs_filename):
+    edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges)
+    plot_full_graph(G, node_colors, edge_colors, full_graph_filename)
+    # plot_top_n_subgraphs(G, edge_color_map, subgraphs_filename) 

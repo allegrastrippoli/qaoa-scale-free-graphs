@@ -1,25 +1,8 @@
-from algorithms.algofactory import AlgorithmFactory
-import networkx as nx 
+from tests.run_experiments import *
 
 if __name__ == "__main__":
-    p = 1 
-    G = nx.Graph()
-    G.add_nodes_from(range(4))
-    G.add_edges_from([(0,1),(1,2),(2,3),(3,0)])
-    q = AlgorithmFactory.create("qaoa", G, p)
-    q.run()
-    print(f"{q.best_bitstring=}\n",
-          f"{q.angles=}\n", 
-          f"{q.olap=}\n")
-    print("---------------------------------------------------------")
-    rq = AlgorithmFactory.create("rqaoa", G, p)
-    rq.run()
-    print(f"{rq.best_bitstring=}\n",
-          f"{rq.mapping=}\n", 
-          f"{rq.constraints=}\n", 
-          f"{rq.history=}\n")
-    print("---------------------------------------------------------")
-    lc = AlgorithmFactory.create("lcqaoa", G, p)
-    lc.run()
-    print(f"{lc.best_bitstring=}\n",
-          f"{lc.history=}")
+    # run_example_graph()
+    # run_energy_landscape_regular_graph(ising=True)
+    run_energy_landscape_regular_graph(ising=False)
+    
+    
