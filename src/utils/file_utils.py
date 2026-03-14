@@ -69,7 +69,7 @@ def graph_info(G, graphs_info_filename, graph_filename):
         "min_degree": min(degrees),
         "avg_degree": np.mean(degrees),
         "max_neighborhood_size": max_ns,
-        "graph_file": graph_filename
+        # "graph_file": graph_filename
     }
     df = pd.DataFrame([data])
     df.to_csv(graphs_info_filename, index=False)

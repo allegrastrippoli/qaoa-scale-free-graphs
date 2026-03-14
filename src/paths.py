@@ -14,6 +14,10 @@ def get_run_dirs(run_name):
     graphs_dir.mkdir(parents=True, exist_ok=True)
     return csv_dir, fig_dir, graphs_dir
 
+def csv_graphs_info_path(run_name, index):
+    csv_dir, _, _ = get_run_dirs(run_name)
+    return csv_dir / f"graphs_info{index}.csv"
+
 def csv_energy_landscape_path(run_name, index):
     csv_dir, _, _ = get_run_dirs(run_name)
     return csv_dir / f"energy_landscape{index}.csv"
@@ -21,6 +25,10 @@ def csv_energy_landscape_path(run_name, index):
 def fig_energy_landscape_path(run_name, index):
     _, fig_dir, _ = get_run_dirs(run_name)
     return fig_dir / f"energy_landscape{index}.png"
+
+def fig_degree_distribution_path(run_name, index):
+    _, fig_dir, _ = get_run_dirs(run_name)
+    return fig_dir / f"degree_distribution{index}.png"
 
 def graphs_path(run_name, index):
     _, _, graphs_dir = get_run_dirs(run_name)

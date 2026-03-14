@@ -1,4 +1,4 @@
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import networkx as nx
 
 def compute_subgraph_for_edge(G, u, v):
