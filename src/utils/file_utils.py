@@ -1,17 +1,9 @@
 from algorithms.algofactory import AlgorithmFactory
-from algorithms.lcqaoa import LCQAOA
-from utils.generate import *
 from pathlib import Path
-import numpy as np
+from utils.utils import *
 import networkx as nx
+import numpy as np
 import pandas as pd
-import csv 
-
-def light_cones_to_csv(G, light_cones, top_n):
-    top_n_edges = top_n_max_neighborhood_size(G, top_n)
-    for i, lc in enumerate(light_cones.light_cones):
-        if (lc.u, lc.v) in top_n_edges or (lc.v, lc.u) in top_n_edges:
-            energy_to_csv(lc.expectation, index=i)
 
 # Given one graph, computes the energy for each possible value of gamma and beta 
 # Args: fun -> a function that computes the expectation value of an hamiltonian
@@ -64,16 +56,20 @@ def load_generated_graphs(filename):
         graphs.append(G)
     return graphs
 
-# Given a number n, it creates n bounded scale free graphs with fixed number of nodes and gamma 
-def generate_graphs(n, num_nodes, gamma, graphs_info_filename, graph_dir):
-        # writer.writerow(["id", "nodes", "edges", "connected", "max degree", "min degree", "avg degree", "max neighborhood size", "graph_file"])
-        data = []
-        for i in range(n):
-            G = generate_bounded_scale_free_graph(num_nodes, gamma)
-            degrees = [G.degree(n) for n in G.nodes()]
-            max_ns, max_edge = max_neighborhood_size(G)
-            graph_path = f"{graph_dir}/graph_{i}.gml"
-            nx.write_gml(G, graph_path)
-            data.append([i, G.number_of_nodes(), G.number_of_edges(), nx.is_connected(G), max(degrees), min(degrees), f"{np.mean(degrees):.2f}", max_ns, graph_path])
-        df = pd.DataFrame(data, columns=["graph_id", "nodes", "edges", "connected", "max_degree", "min_degree", "avg_degree", "max_neighborhood size", "graph_file"])
-        df.to_csv(graphs_info_filename, index=False)
+
+def graph_info(G, graphs_info_filename, graph_filename):
+    degrees = [G.degree(n) for n in G.nodes()]
+    max_ns, max_edge = max_neighborhood_size(G)
+    nx.write_gml(G, graph_filename)
+    data = {
+        "nodes": G.number_of_nodes(),
+        "edges": G.number_of_edges(),
+        "connected": nx.is_connected(G),
+        "max_degree": max(degrees),
+        "min_degree": min(degrees),
+        "avg_degree": np.mean(degrees),
+        "max_neighborhood_size": max_ns,
+        "graph_file": graph_filename
+    }
+    df = pd.DataFrame([data])
+    df.to_csv(graphs_info_filename, index=False)

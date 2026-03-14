@@ -3,24 +3,25 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 OUTPUT_DIR = BASE_DIR / "output"
-CSV_DIR = OUTPUT_DIR / "csv"
-FIG_DIR = OUTPUT_DIR / "figures"
-GRAPHS_DIR =  OUTPUT_DIR / "graphs"
 
-CSV_DIR.mkdir(parents=True, exist_ok=True)
-FIG_DIR.mkdir(parents=True, exist_ok=True)
+def get_run_dirs(run_name):
+    run_dir = OUTPUT_DIR / run_name
+    csv_dir = run_dir / "csv"
+    fig_dir = run_dir / "figures"
+    graphs_dir = run_dir / "graphs"
+    csv_dir.mkdir(parents=True, exist_ok=True)
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    graphs_dir.mkdir(parents=True, exist_ok=True)
+    return csv_dir, fig_dir, graphs_dir
 
-def csv_energy_landscape_path(name):
-    return CSV_DIR / "energy_landscape" / f"{name}.csv"
+def csv_energy_landscape_path(run_name, index):
+    csv_dir, _, _ = get_run_dirs(run_name)
+    return csv_dir / f"energy_landscape{index}.csv"
 
-def csv_optimized_angles_path(name):
-    return CSV_DIR / "optimized_angles" / f"{name}.csv"
+def fig_energy_landscape_path(run_name, index):
+    _, fig_dir, _ = get_run_dirs(run_name)
+    return fig_dir / f"energy_landscape{index}.png"
 
-def fig_energy_landscape_path(name):
-    return FIG_DIR / "energy_landscape" / f"{name}.png"
-
-def fig_optimized_angles_path(name):
-    return FIG_DIR / "optimized_angles" / f"{name}.png"
-
-def graphs_path(name):
-    return GRAPHS_DIR / f"{name}.gml"
+def graphs_path(run_name, index):
+    _, _, graphs_dir = get_run_dirs(run_name)
+    return graphs_dir / f"graph{index}.gml"

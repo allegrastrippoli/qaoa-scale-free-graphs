@@ -47,24 +47,23 @@ def run_energy_landscape_regular_graph(ising):
     graphs.append(G3)
     for i, G in enumerate(graphs):
         L = LightCone(G, 0, 1, p, ising=ising)
-        name_str = ""
-        if ising:
-            name_str = f"ising"
-        else:
-            name_str = f"standard"
-        energy_to_csv(L.expectation, filename=csv_energy_landscape_path(f"{name_str}{i}"))
-        gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(f"{name_str}{i}"))
-        plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(f"{name_str}{i}"), save_fig=True)
+        energy_to_csv(L.expectation, filename=csv_energy_landscape_path(run_name="run_energy_landscape_regular_graph", index=i))
+        gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name="run_energy_landscape_regular_graph", index=i))
+        plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name="run_energy_landscape_regular_graph", index=i), save_fig=True)
 
 # def test_example_scale_free_graph():
-#     top_n = 5
 #     num_nodes = 10
 #     gamma = 2.4
+#     top_n = 5
 #     p = 1
 #     G = generate_bounded_scale_free_graph(num_nodes, gamma)
-#     degrees = [G.degree(n) for n in G.nodes()]
-#     max_ns, max_edge = max_neighborhood_size(G)
-#     print(f"Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}, Connected: {nx.is_connected(G)}, Max degree: {max(degrees)}, Min degree: {min(degrees)}, Avg degree: {np.mean(degrees):.2f}, Max neighborhood size: {max_ns}")
-#     fig = plot_degree_distribution(G, gamma)
-#     lc = LCQAOA(G, p)
-#     plot_subgraphs_maxns(G, lc, top_n)
+#     graph_info(G, graphs_info_filename= ,graph_filename=)
+#     plot_degree_distribution(G, gamma)
+#     light_cones= LCQAOA(G, p)
+#     top_n_edges = top_n_max_neighborhood_size(G, top_n)
+#     for i, lc in enumerate(light_cones.light_cones):
+#         if (lc.u, lc.v) in top_n_edges or (lc.v, lc.u) in top_n_edges:
+#             energy_to_csv(lc.expectation, filename=csv_energy_landscape_path(str(i)))
+#             gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(str(i)))
+            
+  
