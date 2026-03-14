@@ -1,7 +1,7 @@
 from utils.utils import *
 from utils.operators import ZZ, graph_to_hamiltonian
-from scipy.optimize import minimize
 from algorithms.qaoa import QAOA
+from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx
 import numpy as np
 import random
@@ -35,7 +35,7 @@ class LightCone:
                 olap+= np.absolute(state[i])**2
         return olap
     
-class LCQAOA:
+class LCQAOA(BaseAlgorithm):
     def __init__(self, G, p):
         self.G = G
         self.p = p
@@ -44,7 +44,11 @@ class LCQAOA:
             self.light_cones.append(LightCone(G, u, v, p))
         self.history = []
 
-    def sum_of_expectations(self, angles):
+    def _postprocess(self, res): 
+        self.best_bitstring = self.find_bitstring()
+        self.save_history()
+
+    def expectation(self, angles):
         total_energy = 0.0
         for lc in self.light_cones:
             total_energy += lc.expectation(angles)
@@ -101,15 +105,4 @@ class LCQAOA:
                 "angles": self.angles
             })
         
-    def run(self): 
-        initial_angles=[]
-        bds= [(0,2*np.pi+0.1)]*self.p + [(0,1*np.pi+0.1)]*self.p
-        for i in range(2*self.p):
-            if i < self.p:
-                initial_angles.append(random.uniform(0,2*np.pi))
-            else:
-                initial_angles.append(random.uniform(0,np.pi))
-        res = minimize(self.sum_of_expectations,initial_angles,method='L-BFGS-B', jac=None, bounds=bds, options={'maxiter': 1000})
-        self.angles = res.x  
-        self.best_bitstring = self.find_bitstring()
-        self.save_history()
+

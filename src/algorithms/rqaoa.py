@@ -2,11 +2,12 @@ from scipy.optimize import minimize
 from algorithms.qaoa import QAOA
 from utils.operators import tensor, ZZ
 from collections import deque
+from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx
 import numpy as np
 import random
 
-class RQAOA:
+class RQAOA(BaseAlgorithm):
     def __init__(self, depth, H, Q, G):      
         self.initial_graph = G
         self.H = H
@@ -19,10 +20,10 @@ class RQAOA:
         self.constraints = {}                              # "constraints", stores correlations between edges
         self.history = []
         
-    def expectation(self, Z_iZ_j, angles):
+    def expectation(self, angles):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
-        ex = np.vdot(state, state * Z_iZ_j.reshape(col_shape))
+        ex = np.vdot(state, state * self.Z_iZ_j.reshape(col_shape))
         return np.real(ex)
     
     def overlap(self, angles):
@@ -112,7 +113,8 @@ class RQAOA:
                 if sub.number_of_edges() == 1:
                     i, j = list(sub.edges)[0]
                     Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
-                    exp = self.expectation(Z_iZ_j, angles)
+                    self.Z_iZ_j = Z_iZ_j
+                    exp = self.expectation(angles)
                     self.constraints[(self.mapping[i], self.mapping[j])] = np.sign(exp)
         if is_terminal():
             self.save_history(angles)
@@ -123,7 +125,8 @@ class RQAOA:
         magnitude = {}
         for (i,j) in self.G.edges:
             Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
-            magnitude[(i, j)] = self.expectation(Z_iZ_j, angles)
+            self.Z_iZ_j = Z_iZ_j
+            magnitude[(i, j)] = self.expectation(angles)
         (i,j), max_magn = max(magnitude.items(), key=lambda item: abs(item[1]))
         s = np.sign(max_magn) 
         self.constraints[(self.mapping[i],self.mapping[j])] = s
@@ -136,17 +139,12 @@ class RQAOA:
     
     def run(self, initial_angles=None):
         if initial_angles is None:
-            initial_angles=[]
-            for i in range(2*self.p):
-                if i < self.p:
-                    initial_angles.append(random.uniform(0,2*np.pi))
-                else:
-                    initial_angles.append(random.uniform(0,np.pi))
-        self.rqaoa(initial_angles)    
+            initial_angles = self._initialize_angles()
+        self.rqaoa(initial_angles)
         assignment = self.find_assignment(self.constraints)
         maxcut = [assignment[key] for key in sorted(assignment)]
         self.best_bitstring = ''.join(map(str, maxcut))
-
+        
     def find_assignment(self, constraints):
         assignment = {}
         for start in self.initial_graph.nodes:

@@ -1,10 +1,11 @@
 from collections import Counter
 from scipy.optimize import minimize
+from algorithms.basealgorithm import BaseAlgorithm
 import numpy as np
 import random 
 import time 
 
-class QAOA:
+class QAOA(BaseAlgorithm):
     def __init__(self,depth,H):     # Class initialization. Arguments are "depth",
                                     # and a Diagonal Hamiltonian,"H".
         self.H = H 
@@ -121,22 +122,10 @@ class QAOA:
                     #    ground state overlap, here as "olap"
                     #    and also the optimal state, here as "f_state"
 
-    def run(self):
-        initial_angles=[]
-        bds= [(0,2*np.pi+0.1)]*self.p + [(0,1*np.pi+0.1)]*self.p
-        for i in range(2*self.p):
-            if i < self.p:
-                initial_angles.append(random.uniform(0,2*np.pi))
-            else:
-                initial_angles.append(random.uniform(0,np.pi))
-        # start = time.perf_counter()
-        res = minimize(self.expectation,initial_angles,method='L-BFGS-B', jac=None, bounds=bds, options={'maxiter': 1000})
-        # elapsed = time.perf_counter() - start
-        # res = differential_evolution(self.expectation, bds,maxiter=100, callback=None, disp=False, init='latinhypercube',workers=-1)
+    def _postprocess(self, res):
         self.q_energy = self.expectation(res.x)
         self.q_error = self.q_energy - self.min
         self.f_state = self.qaoa_ansatz(res.x)
         self.olap = self.overlap(self.f_state)[0]
-        self.angles = res.x
         self.best_bitstring = np.binary_repr(int(np.argmax(np.abs(self.f_state))), width=self.n)
      #__________________________________________________________________________________________________________
