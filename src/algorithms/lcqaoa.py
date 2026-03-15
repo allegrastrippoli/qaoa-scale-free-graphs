@@ -100,9 +100,7 @@ class LCQAOA(BaseAlgorithm):
             ground_state = format(np.argmin(lc.H), f"0{lc.n_sub}b")
             self.history.append({
                 "edge": (lc.u, lc.v),
-                "ground state": ground_state,
+                "ground_state": ground_state,
                 "overlap": overlap,
                 "angles": self.angles
             })
-        
-

@@ -57,11 +57,11 @@ def plot_optimized_angles(x, y, filename):
     plt.grid(True)
     plt.savefig(filename, dpi=300)
 
-# def plot_full_graph(G, node_colors, edge_colors, filename):
-#     pos = nx.spring_layout(G)    
-#     plt.figure(figsize=(8, 8))
-#     nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
-#     plt.savefig(filename, dpi=300)
+def plot_full_graph(G, node_colors, edge_colors, filename):
+    pos = nx.spring_layout(G)    
+    plt.figure(figsize=(8, 8))
+    nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
+    plt.savefig(filename, dpi=300)
 
 def plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename):
     edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges) 

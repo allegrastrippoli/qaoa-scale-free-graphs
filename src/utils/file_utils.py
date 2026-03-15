@@ -29,13 +29,18 @@ def load_energy_from_csv(filename):
     
 # Given a set of graphs, stores the optimal values of gamma and beta 
 # Args: algo_name -> a string among "qaoa", "rqaoa" and "lcqaoa"
-def optimized_angles_to_csv(algo_name, graphs, p, filename):
+def optimized_angles_to_csv(algo_name, graphs, p, filename, history_filename=None, angles=[]):
     data = []
     for i, G in enumerate(graphs):
         algo = AlgorithmFactory.create(algo_name, G, p)
-        algo.run()
-        gamma, beta = algo.angles 
-        data.append(i, gamma, beta)
+        if not angles:
+            algo.run()
+        else:
+            algo.run(angles)
+        gamma, beta = algo.angles     
+        data.append([i, gamma, beta])
+        if hasattr(algo, "history") and algo.history:
+            history_to_csv(algo_name, algo.best_bitstring, algo.history, history_filename)
     df = pd.DataFrame(data, columns=["graph_id", "gamma", "beta"])
     df.to_csv(filename, index=False)
 
@@ -72,4 +77,19 @@ def graph_info(G, graphs_info_filename, graph_filename):
         # "graph_file": graph_filename
     }
     df = pd.DataFrame([data])
-    df.to_csv(graphs_info_filename, index=False)
+    df.to_csv(graphs_info_filename, mode='a', index=False, header=False)
+
+def history_to_csv(algo_name, best_bitstring, history, filename):
+    data = []
+    data.append({"best_bitstring" : best_bitstring})
+    if algo_name == "lcqaoa":
+        for row_data in history:
+            data.append({
+            "edge": row_data["edge"],
+            "ground_state": row_data["ground_state"],
+            "overlap": row_data["overlap"],
+            "angles": row_data["angles"]
+        })
+    df = pd.DataFrame(data)
+    df.to_csv(filename, mode='a', index=False, header=False)
+    
