@@ -52,21 +52,21 @@ def run_energy_landscape_regular_graph(ising):
         gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
         plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name=run_name, index=i), save_fig=True)
 
-def run_example_scale_free_graph(num_nodes, gamma, top_n):
-    p = 1
-    G = generate_bounded_scale_free_graph(num_nodes, gamma)
-    run_name="test_example_scale_free_graph"
-    graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=0) , graph_filename=graphs_path(run_name, 0))
-    plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=0))
-    light_cones= LCQAOA(G, p, ising=False)
-    top_n_edges = top_n_max_neighborhood_size(G, top_n)
-    energies = {}
-    for i, lc in enumerate(light_cones.light_cones):
-        if (lc.u, lc.v) in top_n_edges or (lc.v, lc.u) in top_n_edges:
-            energy_to_csv(lc.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
-            gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
-            energies[(lc.u, lc.v)] = [gammas, betas, E]
-    plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename=fig_energy_landscape_path(run_name=run_name, index=0))
+# def run_example_scale_free_graph(num_nodes, gamma, top_n):
+#     p = 1
+#     G = generate_bounded_scale_free_graph(num_nodes, gamma)
+#     run_name="test_example_scale_free_graph"
+#     graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=0) , graph_filename=graphs_path(run_name, 0))
+#     plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=0))
+#     light_cones= LCQAOA(G, p, ising=False)
+#     top_n_edges = top_n_max_neighborhood_size(G, top_n)
+#     energies = {}
+#     for i, lc in enumerate(light_cones.light_cones):
+#         if (lc.u, lc.v) in top_n_edges or (lc.v, lc.u) in top_n_edges:
+#             energy_to_csv(lc.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
+#             gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
+#             energies[(lc.u, lc.v)] = [gammas, betas, E]
+#     plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename=fig_energy_landscape_path(run_name=run_name, index=0))
     
     
 def run_optimized_angles(num_nodes, gamma):
@@ -92,14 +92,13 @@ def compare_optimized_angles_with_energy_landscape():
     _, _, graphs_dir = get_run_dirs(run_name)
     graphs = load_generated_graphs(graphs_dir)
     for i, G in enumerate(graphs):
-        if i <= 10:
-            light_cones = AlgorithmFactory.create("lcqaoa", G, p)
-            energy_to_csv(light_cones.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
-            # Q = AlgorithmFactory.create("qaoa", G, p)
-            # energy_to_csv(Q.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
-            gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
-            plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name=run_name, index=i), save_fig=True)
-            print("Processed graph ", i)
+        light_cones = AlgorithmFactory.create("lcqaoa", G, p)
+        energy_to_csv(light_cones.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
+        # Q = AlgorithmFactory.create("qaoa", G, p)
+        # energy_to_csv(Q.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
+        gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
+        plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name=run_name, index=i), save_fig=True)
+        print("Processed graph ", i)
                 
     
             

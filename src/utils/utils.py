@@ -35,17 +35,17 @@ def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
     common_neighbors = len(neighbors_a & neighbors_b)
     return degree_a + degree_b - common_neighbors
 
-def max_neighborhood_size(G: nx.Graph) -> tuple[int, tuple]:
-    if G.number_of_edges() == 0:
-        return 0, None
-    max_size = 0
-    max_edge = None
-    for edge in G.edges():
-        size = neighborhood_size(G, edge)
-        if size > max_size:
-            max_size = size
-            max_edge = edge
-    return max_size, max_edge
+# def max_neighborhood_size(G: nx.Graph) -> tuple[int, tuple]:
+#     if G.number_of_edges() == 0:
+#         return 0, None
+#     max_size = 0
+#     max_edge = None
+#     for edge in G.edges():
+#         size = neighborhood_size(G, edge)
+#         if size > max_size:
+#             max_size = size
+#             max_edge = edge
+#     return max_size, max_edge
 
 def top_n_max_neighborhood_size(G: nx.Graph, n: int):
     if G.number_of_edges() == 0:

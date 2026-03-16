@@ -64,7 +64,7 @@ def load_generated_graphs(filepath):
 
 def graph_info(G, graphs_info_filename, graph_filename):
     degrees = [G.degree(n) for n in G.nodes()]
-    max_ns, max_edge = max_neighborhood_size(G)
+    # max_ns, max_edge = max_neighborhood_size(G)
     nx.write_gml(G, graph_filename)
     data = {
         "nodes": G.number_of_nodes(),
@@ -73,7 +73,7 @@ def graph_info(G, graphs_info_filename, graph_filename):
         "max_degree": max(degrees),
         "min_degree": min(degrees),
         "avg_degree": np.mean(degrees),
-        "max_neighborhood_size": max_ns,
+        # "max_neighborhood_size": max_ns,
         # "graph_file": graph_filename
     }
     df = pd.DataFrame([data])
