@@ -38,6 +38,7 @@ def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     axes[1].set_title(f'Degree Distribution (Log-Log) - γ={gamma:.2f}')
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
+    plt.close()
 
 # Input: two numpy arrays 
 # Output: a scatterplot that also shows average and standard deviation 
@@ -62,6 +63,7 @@ def plot_full_graph(G, node_colors, edge_colors, filename):
     plt.figure(figsize=(8, 8))
     nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
     plt.savefig(filename, dpi=300)
+    plt.close()
 
 def plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename):
     edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges) 
@@ -83,3 +85,5 @@ def plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename):
         plot_energy_landscape(energies[edge][0], energies[edge][1], energies[edge][2], save_fig=False)
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
+    plt.close()
+    
