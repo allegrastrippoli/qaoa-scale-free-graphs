@@ -54,9 +54,9 @@ def load_optimized_angles(filename):
 
 # Input: a directory
 # Output: a list of nx.Graph graphs  
-def load_generated_graphs(filename):
+def load_generated_graphs(filepath):
     graphs = []
-    for gml_file in Path(filename).glob("*.gml"):
+    for gml_file in Path(filepath).glob("*.gml"):
         G = nx.read_gml(gml_file)
         graphs.append(G)
     return graphs

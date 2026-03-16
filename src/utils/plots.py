@@ -14,7 +14,7 @@ def plot_energy_landscape(gammas, betas, E, ax=None, save_fig=False, filename=""
     plt.colorbar(im, ax=ax, label="Energy")
     if save_fig:
         plt.savefig(filename, dpi=300)
-        plt.close()
+    plt.close()
     return im
 
 # Given a scale free graphs, plots the degree distribution, both linear and log-log 
@@ -47,15 +47,15 @@ def plot_optimized_angles(x, y, filename):
     x_std = np.std(x)
     y_ave = np.average(y)
     y_std = np.std(y)
-    plt.scatter(x, y)
-    plt.errorbar(x_ave, y_ave, yerr=y_std, xerr=x_std, fmt='o', color='red',
-                ecolor='red', capsize=5, elinewidth=2, label='Data with Std Dev')
+    plt.scatter(x, y, alpha=0.3)
+    plt.errorbar(x_ave, y_ave, yerr=y_std, xerr=x_std, fmt='o', color='red', ecolor='red', capsize=5, elinewidth=2, label='Mean ± Std Dev')
     plt.xlabel(r"$\beta$")
     plt.ylabel(r"$\gamma$")
-    plt.title('Optimized Angles')
+    plt.title("Optimized Angles")
     plt.legend()
     plt.grid(True)
     plt.savefig(filename, dpi=300)
+    plt.close()
 
 def plot_full_graph(G, node_colors, edge_colors, filename):
     pos = nx.spring_layout(G)    
