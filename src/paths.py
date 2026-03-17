@@ -42,6 +42,14 @@ def fig_optimized_angles_path(run_name, index):
     _, fig_dir, _ = get_run_dirs(run_name)
     return fig_dir / f"optimized_angles{index}.png"
 
+def fig_full_graph(run_name, index):
+    _, fig_dir, _ = get_run_dirs(run_name)
+    return fig_dir / f"full_graph{index}.png"
+
+def fig_max_cut(run_name, index):
+    _, fig_dir, _ = get_run_dirs(run_name)
+    return fig_dir / f"max_cut{index}.png"
+
 def graphs_path(run_name, index):
     _, _, graphs_dir = get_run_dirs(run_name)
     return graphs_dir / f"graph{index}.gml"

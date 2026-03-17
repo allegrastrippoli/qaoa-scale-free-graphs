@@ -29,14 +29,11 @@ def load_energy_from_csv(filename):
     
 # Given a set of graphs, stores the optimal values of gamma and beta 
 # Args: algo_name -> a string among "qaoa", "rqaoa" and "lcqaoa"
-def optimized_angles_to_csv(algo_name, graphs, p, filename, history_filename=None, angles=[]):
+def optimized_angles_to_csv(algo_name, graphs, p, filename, history_filename=None, angles=None, n_iter=0, multistart=False):
     data = []
     for i, G in enumerate(graphs):
         algo = AlgorithmFactory.create(algo_name, G, p)
-        if not angles:
-            algo.run()
-        else:
-            algo.run(angles)
+        algo.run(angles)
         gamma, beta = algo.angles     
         data.append([i, gamma, beta])
         if hasattr(algo, "history") and algo.history:
@@ -64,7 +61,7 @@ def load_generated_graphs(filepath):
 
 def graph_info(G, graphs_info_filename, graph_filename):
     degrees = [G.degree(n) for n in G.nodes()]
-    # max_ns, max_edge = max_neighborhood_size(G)
+    max_ns, max_edge = max_neighborhood_size(G)
     nx.write_gml(G, graph_filename)
     data = {
         "nodes": G.number_of_nodes(),
@@ -73,7 +70,7 @@ def graph_info(G, graphs_info_filename, graph_filename):
         "max_degree": max(degrees),
         "min_degree": min(degrees),
         "avg_degree": np.mean(degrees),
-        # "max_neighborhood_size": max_ns,
+        "max_neighborhood_size": max_ns,
         # "graph_file": graph_filename
     }
     df = pd.DataFrame([data])
@@ -92,4 +89,3 @@ def history_to_csv(algo_name, best_bitstring, history, filename):
         })
     df = pd.DataFrame(data)
     df.to_csv(filename, mode='a', index=False, header=False)
-    

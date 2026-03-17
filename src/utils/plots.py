@@ -14,8 +14,6 @@ def plot_energy_landscape(gammas, betas, E, ax=None, save_fig=False, filename=""
     plt.colorbar(im, ax=ax, label="Energy")
     if save_fig:
         plt.savefig(filename, dpi=300)
-    plt.close()
-    return im
 
 # Given a scale free graphs, plots the degree distribution, both linear and log-log 
 def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
@@ -61,12 +59,12 @@ def plot_optimized_angles(x, y, filename):
 def plot_full_graph(G, node_colors, edge_colors, filename):
     pos = nx.spring_layout(G)    
     plt.figure(figsize=(8, 8))
-    nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True,)
+    nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True)
     plt.savefig(filename, dpi=300)
     plt.close()
 
-def plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename):
-    edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges) 
+def plot_top_n_subgraphs(G, energies, edge_color_map, filename):
+    # edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges) 
     num = len(edge_color_map)
     cols = 3
     rows = (num + cols - 1) // cols
@@ -85,5 +83,18 @@ def plot_top_n_subgraphs(G, energies, top_n, top_n_edges, filename):
         plot_energy_landscape(energies[edge][0], energies[edge][1], energies[edge][2], save_fig=False)
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
-    plt.close()
-    
+    plt.close(fig)
+        
+def plot_max_cut(G, best_bitstring, filename):
+    node_colors = []
+    for bit in best_bitstring:
+        if bit == "0":
+            node_colors.append("red")
+        elif bit == "1":
+            node_colors.append("green")
+    pos = nx.spring_layout(G)
+    fig, ax = plt.subplots(figsize=(8, 8)) 
+    nx.draw(G, pos=pos, node_color=node_colors, node_size=200, with_labels=True, ax=ax)
+    ax.set_title(f"Max cut: {best_bitstring}")
+    plt.savefig(filename, dpi=300)
+    plt.close(fig)

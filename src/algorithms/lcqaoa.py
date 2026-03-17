@@ -36,12 +36,16 @@ class LightCone:
         return olap
     
 class LCQAOA(BaseAlgorithm):
-    def __init__(self, G, p, ising=True):
+    def __init__(self, G, p, ising=True, edges_subset=None):
         self.G = G
         self.p = p
         self.light_cones = []
-        for u, v in self.G.edges:
-            self.light_cones.append(LightCone(G, u, v, p, ising))
+        if edges_subset is None:
+            for u, v in self.G.edges:
+                self.light_cones.append(LightCone(G, u, v, p, ising))
+        else:
+            for u, v in edges_subset:
+                self.light_cones.append(LightCone(G, u, v, p, ising))
         self.history = []
 
     def _postprocess(self, res): 

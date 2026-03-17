@@ -101,3 +101,9 @@ def generate_bounded_scale_free_graph(num_nodes: int, gamma: float, max_node_deg
             for target in targets:
                 G.add_edge(new_node, target)
     return G
+
+
+def generate_3_regular_graph(n, seed=None):
+    if n < 4 or n % 2 != 0:
+        raise ValueError("n must be an even integer >= 4 for a 3-regular graph.")
+    return nx.random_regular_graph(d=3, n=n, seed=seed)

@@ -3,13 +3,23 @@ from scipy.optimize import minimize
 from utils.utils import initialize_angles
 import numpy as np
 
-class BaseAlgorithm(ABC): 
-    def run(self, initial_angles=[]):
-        if not initial_angles:
+class BaseAlgorithm(ABC):
+    def run(self, n_iter=0, multistart=False, initial_angles=None):
+        if initial_angles is None:
             initial_angles = initialize_angles(self.p)
-        bounds = self._bounds()
-        res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
-        self.angles = res.x
+            bounds = self._bounds()
+        if multistart and n_iter > 0:
+            print("Multistart init")
+            best_val = np.inf
+            for _ in range(n_iter):
+                res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
+                val = res.fun
+                if val < best_val:
+                    best_val = val
+                    self.angles = res.x
+        else:
+            res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
+            self.angles = res.x
         self._postprocess(res)
 
     def _bounds(self):
