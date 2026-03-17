@@ -13,7 +13,7 @@ def run_example_graph():
     G.add_nodes_from(range(4))
     G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
     q = AlgorithmFactory.create("qaoa", G, p)
-    q.run(n_iter=100, multistart=True)
+    q.run(n_iter=5, multistart=True)
     print(f"{q.best_bitstring=}\n",
           f"{q.angles=}\n", 
           f"{q.olap=}\n")
@@ -26,12 +26,51 @@ def run_example_graph():
           f"{rq.history=}\n")
     print("---------------------------------------------------------")
     lc = AlgorithmFactory.create("lcqaoa", G, p)
-    lc.run(n_iter=100, multistart=True)
+    lc.run(n_iter=5, multistart=True)
     print(f"{lc.best_bitstring=}\n",
           f"{lc.history=}\n")
     
+    
+def run_example_max_cut():
+    p = 1 
+    run_name = f"run_example_max_cut_xx"
+    G = generate_bipartite_ring_network(5,1,4)
+    exact_value, exact_bitstring = brute_force_maxcut(G)
+    exact_bitstring = ''.join(str(b) for b in exact_bitstring)
+    plot_max_cut(G, exact_bitstring, fig_max_cut(run_name, "_exact_cut"))
+    q = AlgorithmFactory.create("qaoa", G, p)
+    q.run(n_iter=100, multistart=True)
+    opt_value = maxcut_value(G, q.best_bitstring)
+    ratio = opt_value / exact_value
+    print(f"{q.best_bitstring=}\n",
+          f"{q.angles=}\n", 
+          f"{q.olap=}\n",
+          f"{ratio=}")
+    plot_max_cut(G, q.best_bitstring, fig_max_cut(run_name,  "_qaoa"))
+    print("---------------------------------------------------------")
+    rq = AlgorithmFactory.create("rqaoa", G, p)
+    rq.run()
+    opt_value = maxcut_value(G, rq.best_bitstring)
+    ratio = opt_value / exact_value
+    print(f"{rq.best_bitstring=}\n",
+          f"{rq.mapping=}\n", 
+          f"{rq.constraints=}\n", 
+          f"{rq.history=}\n",
+          f"{ratio=}")
+    plot_max_cut(G, rq.best_bitstring, fig_max_cut(run_name,  "_rqaoa"))
+    print("---------------------------------------------------------")
+    lc = AlgorithmFactory.create("lcqaoa", G, p)
+    lc.run(n_iter=100, multistart=True)
+    opt_value = maxcut_value(G, lc.best_bitstring)
+    ratio = opt_value / exact_value
+    print(f"{lc.best_bitstring=}\n",
+          f"{lc.history=}\n",
+          f"{ratio=}")
+    plot_max_cut(G, lc.best_bitstring, fig_max_cut(run_name,  "_lcqaoa"))
+    
+    
 def run_energy_landscape_regular_graph(ising):
-    p = 1
+    p = 2
     graphs = []
     G1 = nx.Graph()
     G1.add_nodes_from(range(4))
@@ -82,11 +121,10 @@ def run_optimized_angles(num_nodes, gamma):
     run_name = "test_optimized_angles"
     for i in range(50):
         G = generate_bounded_scale_free_graph(num_nodes, gamma)
-        # plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=i))
+        plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=i))
         graphs.append(G)
         graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=0) , graph_filename=graphs_path(run_name, i))
-    optimized_angles_to_csv("lcqaoa", graphs, p,  csv_optimized_angles_path(run_name=run_name, index=0), csv_history_path(run_name=run_name, index=0),  n_iter=n_iter, multistart=True)
-    # optimized_angles_to_csv("qaoa", graphs, p,  csv_optimized_angles_path(run_name=run_name, index=j), csv_history_path(run_name=run_name, index=j), angles)
+    optimized_angles_to_csv("lcqaoa", graphs, p,  csv_optimized_angles_path(run_name=run_name, index=0), csv_history_path(run_name=run_name, index=0),  n_iter=n_iter, multistart=multistart)
     gammas, betas = load_optimized_angles(csv_optimized_angles_path(run_name=run_name, index=0))
     plot_optimized_angles(gammas, betas, fig_optimized_angles_path(run_name=run_name, index=0))
           

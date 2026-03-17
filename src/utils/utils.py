@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import random
 import numpy as np
+import itertools
 
 def initialize_angles(p):
     angles = []
@@ -81,3 +82,20 @@ def get_colors(G, top_n, top_n_edges):
     node_colors = [node_color_map[node] for node in G.nodes()]
     return edge_color_map, edge_colors, node_color_map, node_colors
     
+def maxcut_value(G, bitstring):
+    cut = 0
+    for i, j in G.edges:
+        if bitstring[i] != bitstring[j]:
+            cut += 1
+    return cut
+
+def brute_force_maxcut(G):
+    n = len(G.nodes)
+    best_value = -1
+    best_bitstring = None
+    for bits in itertools.product([0,1], repeat=n):
+        value = maxcut_value(G, bits)
+        if value > best_value:
+            best_value = value
+            best_bitstring = bits
+    return best_value, best_bitstring

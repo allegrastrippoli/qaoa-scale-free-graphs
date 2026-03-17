@@ -4,7 +4,6 @@ from algorithms.qaoa import QAOA
 from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx
 import numpy as np
-import random
 
 class LightCone:
     def __init__(self, G, u, v, p, ising=True):
