@@ -33,7 +33,7 @@ def run_example_graph():
     
 def run_example_max_cut():
     p = 1 
-    run_name = f"run_example_max_cut_xx"
+    run_name = f"run_example_max_cut"
     G = generate_bipartite_ring_network(5,1,4)
     exact_value, exact_bitstring = brute_force_maxcut(G)
     exact_bitstring = ''.join(str(b) for b in exact_bitstring)
@@ -70,7 +70,7 @@ def run_example_max_cut():
     
     
 def run_energy_landscape_regular_graph(ising):
-    p = 2
+    p = 1
     graphs = []
     G1 = nx.Graph()
     G1.add_nodes_from(range(4))
@@ -113,20 +113,18 @@ def run_example_scale_free_graph(num_nodes, gamma, top_n):
     plot_top_n_subgraphs(G, energies, edge_color_map=edge_color_map, filename=fig_energy_landscape_path(run_name=run_name, index=0))
     
     
-def run_optimized_angles(num_nodes, gamma):
-    n_iter=100
-    multistart=True
+def run_optimized_angles(num_nodes, gamma, multistart, n_iter, n_graphs):
     p = 1 
     graphs = []
     run_name = "test_optimized_angles"
-    for i in range(50):
+    for i in range(n_graphs):
         G = generate_bounded_scale_free_graph(num_nodes, gamma)
         plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=i))
         graphs.append(G)
         graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=0) , graph_filename=graphs_path(run_name, i))
     optimized_angles_to_csv("lcqaoa", graphs, p,  csv_optimized_angles_path(run_name=run_name, index=0), csv_history_path(run_name=run_name, index=0),  n_iter=n_iter, multistart=multistart)
     gammas, betas = load_optimized_angles(csv_optimized_angles_path(run_name=run_name, index=0))
-    plot_optimized_angles(gammas, betas, fig_optimized_angles_path(run_name=run_name, index=0))
+    plot_optimized_angles(betas, gammas, fig_optimized_angles_path(run_name=run_name, index=0))
           
 def compare_optimized_angles_with_energy_landscape():
     p = 1
@@ -136,12 +134,6 @@ def compare_optimized_angles_with_energy_landscape():
     for i, G in enumerate(graphs):
         light_cones = AlgorithmFactory.create("lcqaoa", G, p)
         energy_to_csv(light_cones.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
-        # Q = AlgorithmFactory.create("qaoa", G, p)
-        # energy_to_csv(Q.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
         gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
         plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name=run_name, index=i), save_fig=True)
         print("Processed graph ", i)
-                
-    
-            
-  

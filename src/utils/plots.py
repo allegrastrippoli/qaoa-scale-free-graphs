@@ -1,6 +1,7 @@
 from collections import Counter
 from utils.utils import *
 import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
 import networkx as nx
 import numpy as np
 
@@ -40,17 +41,27 @@ def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
 
 # Input: two numpy arrays 
 # Output: a scatterplot that also shows average and standard deviation 
-def plot_optimized_angles(x, y, filename):
+def plot_optimized_angles(x, y, filename, eps=0.1, min_samples=5):
     plt.figure(figsize=(8, 6))
-    x_ave = np.average(x)
-    x_std = np.std(x)
-    y_ave = np.average(y)
-    y_std = np.std(y)
-    plt.scatter(x, y, alpha=0.3)
-    plt.errorbar(x_ave, y_ave, yerr=y_std, xerr=x_std, fmt='o', color='red', ecolor='red', capsize=5, elinewidth=2, label='Mean ± Std Dev')
+    data = np.column_stack((x, y))
+    clustering = DBSCAN(eps=eps, min_samples=min_samples)
+    labels = clustering.fit_predict(data)
+    unique_clusters = set(labels)
+    plt.scatter(x, y, c=labels, cmap='viridis', alpha=0.3)
+    for cluster in unique_clusters:
+        if cluster == -1:
+            continue 
+        cluster_points = data[labels == cluster]
+        x_vals = cluster_points[:, 0]
+        y_vals = cluster_points[:, 1]
+        x_ave = np.mean(x_vals)
+        x_std = np.std(x_vals)
+        y_ave = np.mean(y_vals)
+        y_std = np.std(y_vals)
+        plt.errorbar(x_ave, y_ave, xerr=x_std, yerr=y_std, fmt='o', capsize=5, elinewidth=2, label=f'Cluster {cluster}')
     plt.xlabel(r"$\beta$")
     plt.ylabel(r"$\gamma$")
-    plt.title("Optimized Angles")
+    plt.title("Optimized Angles (DBSCAN Clusters)")
     plt.legend()
     plt.grid(True)
     plt.savefig(filename, dpi=300)

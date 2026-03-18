@@ -5,13 +5,9 @@ import numpy as np
 import itertools
 
 def initialize_angles(p):
-    angles = []
-    for i in range(2*p):
-        if i < p:
-            angles.append(random.uniform(0,2*np.pi))
-        else:
-            angles.append(random.uniform(0,np.pi))
-    return angles
+    gammas = np.random.uniform(0, np.pi, size=p)
+    betas = np.random.uniform(0, np.pi / 2, size=p)
+    return np.concatenate([gammas, betas])
 
 def compute_subgraph_for_edge(G, u, v):
     nodes =  set(G.neighbors(u)) | set(G.neighbors(v))

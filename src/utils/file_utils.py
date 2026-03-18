@@ -7,9 +7,10 @@ import pandas as pd
 
 # Given one graph, computes the energy for each possible value of gamma and beta 
 # Args: fun -> a function that computes the expectation value of an hamiltonian
+
 def energy_to_csv(fun, filename):
     n_points = 100
-    gammas = np.linspace(0, 2*np.pi, n_points)
+    gammas = np.linspace(0, np.pi, n_points)
     betas = np.linspace(0, np.pi/2, n_points)
     data = []
     for gamma in gammas:
@@ -33,7 +34,7 @@ def optimized_angles_to_csv(algo_name, graphs, p, filename, history_filename=Non
     data = []
     for i, G in enumerate(graphs):
         algo = AlgorithmFactory.create(algo_name, G, p)
-        algo.run(angles)
+        algo.run(n_iter=n_iter, multistart=multistart, initial_angles=angles)
         gamma, beta = algo.angles     
         data.append([i, gamma, beta])
         if hasattr(algo, "history") and algo.history:
