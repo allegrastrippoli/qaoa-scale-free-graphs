@@ -69,7 +69,7 @@ def run_example_max_cut():
     plot_max_cut(G, lc.best_bitstring, fig_max_cut(run_name,  "_lcqaoa"))
     
     
-def run_energy_landscape_regular_graph(ising):
+def run_example_regular_graph(ising):
     p = 1
     graphs = []
     G1 = nx.Graph()
@@ -84,23 +84,28 @@ def run_energy_landscape_regular_graph(ising):
     graphs.append(G1)
     graphs.append(G2)
     graphs.append(G3)
-    run_name="run_energy_landscape_regular_graph"
+    run_name="run_example_regular_graphs"
     for i, G in enumerate(graphs):
         L = LightCone(G, 0, 1, p, ising=ising)
         energy_to_csv(L.expectation, filename=csv_energy_landscape_path(run_name=run_name, index=i))
         gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
         plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name=run_name, index=i), save_fig=True)
 
+
+def create_graph(run_name, fun, n_nodes, gamma, index=0):
+    G = fun(n_nodes, gamma)
+    graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=index), graph_filename=graphs_path(run_name=run_name, index=index))
+    plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=index))
+    return G
+
 # 1. generate a scale free graph
 # 2. plot the degree distribution
 # 4. plot the graph
-# 3. plot the energy landscape for the nodes with the highest degree 
-def run_example_scale_free_graph(num_nodes, gamma, top_n):
+# 3. plot the energy landscape ONLY for the nodes with the highest degree 
+def run_example_scale_free_graph(n_nodes, gamma, top_n):
     p = 1
-    G = generate_scale_free_graph(num_nodes, gamma)
+    G = create_graph(run_name, generate_scale_free_graph, n_nodes, gamma)
     run_name="test_example_scale_free_graph"
-    graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=0), graph_filename=graphs_path(run_name, 0))
-    plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=0))
     top_n_edges = top_n_max_neighborhood_size(G, top_n)
     light_cones= LCQAOA(G, p, ising=False, edges_subset=top_n_edges)
     energies = {}
@@ -113,22 +118,41 @@ def run_example_scale_free_graph(num_nodes, gamma, top_n):
     plot_top_n_subgraphs(G, energies, edge_color_map=edge_color_map, filename=fig_energy_landscape_path(run_name=run_name, index=0))
     
     
-def run_optimized_angles(num_nodes, gamma, multistart, n_iter, n_graphs):
+def optimize_angles_fixed_n_nodes_fixed_gamma(n_nodes, gamma, multistart, n_iter, n_graphs):
     p = 1 
     graphs = []
-    run_name = "test_optimized_angles"
+    run_name = "optimize_angles_fixed_n_nodes_fixed_gamma"
     for i in range(n_graphs):
-        G = generate_bounded_scale_free_graph(num_nodes, gamma)
-        plot_degree_distribution(G, gamma, filename=fig_degree_distribution_path(run_name=run_name, index=i))
+        G = create_graph(run_name=run_name, fun=generate_bounded_scale_free_graph, n_nodes=n_nodes, gamma=gamma, index=i)
         graphs.append(G)
-        graph_info(G, graphs_info_filename=csv_graphs_info_path(run_name=run_name, index=0) , graph_filename=graphs_path(run_name, i))
     optimized_angles_to_csv("lcqaoa", graphs, p,  csv_optimized_angles_path(run_name=run_name, index=0), csv_history_path(run_name=run_name, index=0),  n_iter=n_iter, multistart=multistart)
     gammas, betas = load_optimized_angles(csv_optimized_angles_path(run_name=run_name, index=0))
     plot_optimized_angles(betas, gammas, fig_optimized_angles_path(run_name=run_name, index=0))
-          
+    
+
+def optimize_angles_increasing_n_nodes_fixed_gamma(start_n_nodes, end_n_nodes, gamma, multistart, n_iter, n_graphs):
+    p = 1 
+    run_name = "optimize_angles_increasing_n_nodes_fixed_gamma"
+    n_nodes_lst = np.arange(start_n_nodes, end_n_nodes, 20)
+    print(n_nodes_lst)
+    gammas_lst = []
+    betas_lst = []
+    n_colors = len(n_nodes_lst)
+    for j, n_node in enumerate(n_nodes_lst):
+        graphs = []
+        for i in range(n_graphs):
+            G = create_graph(run_name=run_name, fun=generate_bounded_scale_free_graph, n_nodes=n_node, gamma=gamma, index=i)
+            graphs.append(G)
+        optimized_angles_to_csv("lcqaoa", graphs, p,  csv_optimized_angles_path(run_name=run_name, index=j), csv_history_path(run_name=run_name, index=j),  n_iter=n_iter, multistart=multistart)
+        gammas, betas = load_optimized_angles(csv_optimized_angles_path(run_name=run_name, index=j))
+        gammas_lst.append(gammas)
+        betas_lst.append(betas)
+    plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_colors, fig_optimized_angles_path(run_name=run_name, index=0))
+        
+    
 def compare_optimized_angles_with_energy_landscape():
     p = 1
-    run_name = "test_optimized_angles"
+    run_name = " "
     _, _, graphs_dir = get_run_dirs(run_name)
     graphs = load_generated_graphs(graphs_dir)
     for i, G in enumerate(graphs):
@@ -137,3 +161,14 @@ def compare_optimized_angles_with_energy_landscape():
         gammas, betas, E = load_energy_from_csv(filename=csv_energy_landscape_path(run_name=run_name, index=i))
         plot_energy_landscape(gammas, betas, E, filename=fig_energy_landscape_path(run_name=run_name, index=i), save_fig=True)
         print("Processed graph ", i)
+
+
+def plot_dataset_graphs():
+    run_name = " "
+    _, _, graphs_dir = get_run_dirs(run_name)
+    graphs = load_generated_graphs(graphs_dir)
+    top_n = 3
+    for i, G in enumerate(graphs):
+        top_n_edges = top_n_max_neighborhood_size(G, top_n)
+        _, edge_colors, _, node_colors = get_colors(G, top_n, top_n_edges)
+        plot_full_graph(G, fig_full_graph(run_name=run_name, index=i), node_colors=node_colors, edge_colors=edge_colors)

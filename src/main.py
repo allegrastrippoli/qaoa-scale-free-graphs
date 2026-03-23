@@ -6,15 +6,6 @@ if __name__ == "__main__":
     
     # show max cut 
     # run_example_max_cut()
-
-    # # test energy landscape for small 3 and 4-regular 
-    # run_energy_landscape_regular_graph(ising=True)
-    # run_energy_landscape_regular_graph(ising=False)
     
-    # # test scale free graph
-    # run_example_scale_free_graph(80, 4, 5)
+    optimize_angles_increasing_n_nodes_fixed_gamma(start_n_nodes=30, end_n_nodes=111, gamma=3, multistart=True, n_iter=10, n_graphs=5)
     
-    # # test optimized angles
-    run_optimized_angles(num_nodes=20, gamma=3, multistart=True, n_iter=10, n_graphs=10)
-    # compare_optimized_angles_with_energy_landscape()
-

@@ -16,6 +16,7 @@ def plot_energy_landscape(gammas, betas, E, ax=None, save_fig=False, filename=""
     if save_fig:
         plt.savefig(filename, dpi=300)
 
+
 # Given a scale free graphs, plots the degree distribution, both linear and log-log 
 def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     degrees = [G.degree(n) for n in G.nodes()]
@@ -38,6 +39,21 @@ def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
     plt.close()
+    
+    
+def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_colors, filename):
+    cmap = plt.get_cmap("tab10", n_colors)
+    plt.figure(figsize=(8, 6))
+    for i, (betas, gammas) in enumerate(zip(betas_lst, gammas_lst)):
+        plt.scatter(betas, gammas, cmap=cmap(i), alpha=0.3)
+    plt.xlabel(r"$\beta$")
+    plt.ylabel(r"$\gamma$")
+    plt.title("Optimized Angles")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(filename, dpi=300)
+    plt.close()
+
 
 # Input: two numpy arrays 
 # Output: a scatterplot that also shows average and standard deviation 
@@ -67,12 +83,14 @@ def plot_optimized_angles(x, y, filename, eps=0.1, min_samples=5):
     plt.savefig(filename, dpi=300)
     plt.close()
 
-def plot_full_graph(G, node_colors, edge_colors, filename):
+
+def plot_full_graph(G, filename, node_colors=None, edge_colors=None):
     pos = nx.spring_layout(G)    
     plt.figure(figsize=(8, 8))
     nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True)
     plt.savefig(filename, dpi=300)
     plt.close()
+
 
 def plot_top_n_subgraphs(G, energies, edge_color_map, filename):
     # edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges) 
@@ -95,6 +113,7 @@ def plot_top_n_subgraphs(G, energies, edge_color_map, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
     plt.close(fig)
+       
         
 def plot_max_cut(G, best_bitstring, filename):
     node_colors = []
