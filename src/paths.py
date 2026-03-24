@@ -1,55 +1,40 @@
 from pathlib import Path
+from enum import Enum
+
+class Category(str, Enum):
+    GRAPHS_INFO = "graphs_info"
+    ENERGY_LANDSCAPE = "energy_landscape"
+    OPTIMIZED_ANGLES = "optimized_angles"
+    HISTORY = "history"
+    DEGREE_DISTRIBUTION = "degree_distribution"
+    FULL_GRAPH = "full_graph"
+    MAX_CUT = "max_cut"
+    GRAPH = "graph"
 
 BASE_DIR = Path(__file__).resolve().parent
-
 OUTPUT_DIR = BASE_DIR / "output"
 
-def get_run_dirs(run_name):
-    run_dir = OUTPUT_DIR / run_name
-    csv_dir = run_dir / "csv"
-    fig_dir = run_dir / "figures"
-    graphs_dir = run_dir / "graphs"
-    csv_dir.mkdir(parents=True, exist_ok=True)
-    fig_dir.mkdir(parents=True, exist_ok=True)
-    graphs_dir.mkdir(parents=True, exist_ok=True)
-    return csv_dir, fig_dir, graphs_dir
+class RunPaths:
+    def __init__(self, run_name):
+        self.base = OUTPUT_DIR / run_name
+        self.dirs = {
+            "log": self.base / "log",
+            "fig": self.base / "figures",
+            "graphs": self.base / "graphs",
+        }
+        for d in self.dirs.values():
+            d.mkdir(parents=True, exist_ok=True)
+            
+    def _name(self, category: Category, index=None):
+        if not isinstance(category, Category):
+            raise TypeError("category must be a Category enum")
+        return f"{category.value}{index}" if index is not None else category.value
 
-def csv_graphs_info_path(run_name, index):
-    csv_dir, _, _ = get_run_dirs(run_name)
-    return csv_dir / f"graphs_info{index}.csv"
+    def log(self, category: Category, index=None):
+        return self.dirs["log"] / f"{self._name(category, index)}.csv"
 
-def csv_energy_landscape_path(run_name, index):
-    csv_dir, _, _ = get_run_dirs(run_name)
-    return csv_dir / f"energy_landscape{index}.csv"
+    def fig(self, category: Category, index=None):
+        return self.dirs["fig"] / f"{self._name(category, index)}.png"
 
-def csv_optimized_angles_path(run_name, index):
-    csv_dir, _, _ = get_run_dirs(run_name)
-    return csv_dir / f"optimized_angles{index}.csv"
-
-def csv_history_path(run_name, index):
-    csv_dir, _, _ = get_run_dirs(run_name)
-    return csv_dir / f"history{index}.csv"
-
-def fig_energy_landscape_path(run_name, index):
-    _, fig_dir, _ = get_run_dirs(run_name)
-    return fig_dir / f"energy_landscape{index}.png"
-
-def fig_degree_distribution_path(run_name, index):
-    _, fig_dir, _ = get_run_dirs(run_name)
-    return fig_dir / f"degree_distribution{index}.png"
-
-def fig_optimized_angles_path(run_name, index):
-    _, fig_dir, _ = get_run_dirs(run_name)
-    return fig_dir / f"optimized_angles{index}.png"
-
-def fig_full_graph(run_name, index):
-    _, fig_dir, _ = get_run_dirs(run_name)
-    return fig_dir / f"full_graph{index}.png"
-
-def fig_max_cut(run_name, index):
-    _, fig_dir, _ = get_run_dirs(run_name)
-    return fig_dir / f"max_cut{index}.png"
-
-def graphs_path(run_name, index):
-    _, _, graphs_dir = get_run_dirs(run_name)
-    return graphs_dir / f"graph{index}.gml"
+    def graphs(self, category: Category, index):
+        return self.dirs["graphs"] / f"{self._name(category, index)}.gml"

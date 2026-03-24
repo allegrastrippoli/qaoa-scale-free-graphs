@@ -15,7 +15,7 @@ def plot_energy_landscape(gammas, betas, E, ax=None, save_fig=False, filename=""
     plt.colorbar(im, ax=ax, label="Energy")
     if save_fig:
         plt.savefig(filename, dpi=300)
-
+        plt.close()
 
 # Given a scale free graphs, plots the degree distribution, both linear and log-log 
 def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
