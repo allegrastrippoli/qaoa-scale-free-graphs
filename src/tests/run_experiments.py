@@ -146,32 +146,43 @@ def optimize_angles_increasing_n_nodes_fixed_gamma(start_n_nodes, end_n_nodes, g
     n_nodes_lst = np.arange(start_n_nodes, end_n_nodes, 20)
     gammas_lst = []
     betas_lst = []
-    n_colors = len(n_nodes_lst)
-    for j, n_node in enumerate(n_nodes_lst):
+    for i, n_node in enumerate(n_nodes_lst):
         graphs = []
-        for i in range(n_graphs):
+        for _ in range(n_graphs):
             G = create_graph(rp=rp, fun=generate_bounded_scale_free_graph, n_nodes=n_node, gamma=gamma, index=i)
             graphs.append(G)
-        optimized_angles_to_csv(algo_name="lcqaoa", graphs=graphs, p=p, filename=rp.log(category=Category.OPTIMIZED_ANGLES, index=j), history_filename=rp.log(category=Category.HISTORY),  n_iter=n_iter, multistart=multistart)
-        gammas, betas = load_optimized_angles(filename=rp.log(category=Category.OPTIMIZED_ANGLES, index=j))
+        optimized_angles_to_csv(algo_name="lcqaoa", graphs=graphs, p=p, filename=rp.log(category=Category.OPTIMIZED_ANGLES, index=i), history_filename=rp.log(category=Category.HISTORY),  n_iter=n_iter, multistart=multistart)
+        gammas, betas = load_optimized_angles(filename=rp.log(category=Category.OPTIMIZED_ANGLES, index=i))
         gammas_lst.append(gammas)
         betas_lst.append(betas)
-    plot_optimized_angles_fixed_clusters(betas_lst=betas_lst, gammas_lst=gammas_lst, n_colors=n_colors, filename= rp.fig(category=Category.OPTIMIZED_ANGLES))
+    plot_optimized_angles_fixed_clusters(betas_lst=betas_lst, gammas_lst=gammas_lst, n_nodes_lst=n_nodes_lst, filename= rp.fig(category=Category.OPTIMIZED_ANGLES))
         
     
-def load_pre_computed_energies():
+def load_pre_computed_energies(from_gml_graph=False, from_opt_angles=False):
     p = 1
-    run_name = "test_example_scale_free_graph"
+    run_name = "optimize_angles_increasing_n_nodes_fixed_gamma"
     rp = RunPaths(run_name)
-    graphs = load_generated_graphs(rp.dirs["graphs"])
-    for i, G in enumerate(graphs):
-        light_cones = AlgorithmFactory.create("lcqaoa", G, p)
-        energy_to_csv(fun=light_cones.expectation, filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
-        gammas, betas, E = load_energy_from_csv(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
-        plot_energy_landscape(gammas=gammas, betas=betas, E=E, filename=rp.fig(category=Category.ENERGY_LANDSCAPE , index=i), save_fig=True)
-        print("Processed graph ", i)
-
-
+    if from_gml_graph:
+        graphs = load_generated_graphs(rp.dirs["graphs"])
+        for i, G in enumerate(graphs):
+            light_cones = AlgorithmFactory.create("lcqaoa", G, p)
+            energy_to_csv(fun=light_cones.expectation, filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
+            gammas, betas, E = load_energy_from_csv(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
+            plot_energy_landscape(gammas=gammas, betas=betas, E=E, filename=rp.fig(category=Category.ENERGY_LANDSCAPE , index=i), save_fig=True)
+            print("Processed graph ", i)
+    elif from_opt_angles:
+        gammas_lst = []
+        betas_lst = []
+        fig_dir = rp.dirs["fig"]
+        for i in range(5):
+            gammas, betas = load_optimized_angles(filename=rp.log(category=Category.OPTIMIZED_ANGLES, index=i))
+            gammas_lst.append(gammas)
+            betas_lst.append(betas)
+        cluster_zoom_in(betas_lst, gammas_lst, [ 30,  50,  70,  90, 110], fig_dir)
+    
+        # plot_optimized_angles_fixed_clusters(betas_lst=betas_lst, gammas_lst=gammas_lst, n_nodes_lst=[ 30,  50,  70,  90, 110] , filename= rp.fig(category=Category.OPTIMIZED_ANGLES), zoom_clusters=[0])
+        
+        
 def plot_dataset_graphs(top_n):
     run_name = " "
     rp = RunPaths(run_name)

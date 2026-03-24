@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import DBSCAN
 import networkx as nx
 import numpy as np
+import pandas as pd
 
 # Given a csv file, plots the energy landscape 
 def plot_energy_landscape(gammas, betas, E, ax=None, save_fig=False, filename=""):
@@ -41,11 +42,11 @@ def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     plt.close()
     
     
-def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_colors, filename):
-    cmap = plt.get_cmap("tab10", n_colors)
+def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_nodes_lst, filename):
+    cmap = plt.get_cmap("tab10", len(n_nodes_lst))
     plt.figure(figsize=(8, 6))
     for i, (betas, gammas) in enumerate(zip(betas_lst, gammas_lst)):
-        plt.scatter(betas, gammas, cmap=cmap(i), alpha=0.3)
+        plt.scatter(betas, gammas, color=cmap(i), alpha=0.3, label=f"{n_nodes_lst[i]} nodes")
     plt.xlabel(r"$\beta$")
     plt.ylabel(r"$\gamma$")
     plt.title("Optimized Angles")
@@ -53,7 +54,38 @@ def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_colors, filena
     plt.grid(True)
     plt.savefig(filename, dpi=300)
     plt.close()
-
+    
+    
+def cluster_zoom_in(betas_lst, gammas_lst, n_nodes_lst, fig_dir):
+    cmap = plt.get_cmap("tab10", len(n_nodes_lst))
+    df = pd.DataFrame(columns=["beta", "alpha", "color", "n_nodes"])
+    for i, (betas, gammas) in enumerate(zip(betas_lst, gammas_lst)):
+        for b, g in zip(betas, gammas):
+            df.loc[len(df)] = [b, g, cmap(i), n_nodes_lst[i]]
+    X = df[["beta", "alpha"]].values
+    db = DBSCAN(eps=0.05, min_samples=5)
+    labels = db.fit_predict(X)
+    df["cluster"] = labels
+    for cluster_id in sorted(df["cluster"].unique()):
+        if cluster_id == -1:
+            continue
+        cluster_df = df[df["cluster"] == cluster_id]
+        plt.figure()
+        for n_nodes, group in cluster_df.groupby("n_nodes"):
+            plt.scatter(
+                group["beta"],
+                group["alpha"],
+                c=[group["color"].iloc[0]],
+                alpha=0.3,
+                label=f"{n_nodes} nodes"
+            )
+        plt.title(f"Cluster {cluster_id}")
+        plt.xlabel("beta")
+        plt.ylabel("alpha")
+        plt.legend(title="Graph size")
+        plt.savefig(f"{fig_dir}/cluster_{cluster_id}.png", dpi=300, bbox_inches="tight")
+        plt.close()
+        
 
 # Input: two numpy arrays 
 # Output: a scatterplot that also shows average and standard deviation 
@@ -63,7 +95,7 @@ def plot_optimized_angles(x, y, filename, eps=0.1, min_samples=5):
     clustering = DBSCAN(eps=eps, min_samples=min_samples)
     labels = clustering.fit_predict(data)
     unique_clusters = set(labels)
-    plt.scatter(x, y, c=labels, cmap='viridis', alpha=0.3)
+    plt.scatter(x, y, c=labels, cmap="tab10", alpha=0.3)
     for cluster in unique_clusters:
         if cluster == -1:
             continue 
