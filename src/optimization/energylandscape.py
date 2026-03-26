@@ -27,9 +27,3 @@ class EnergyLandscape:
         energies2d = self.df["energy"].values.reshape(len(unique_gammas), len(unique_betas))
         return unique_gammas, unique_betas, energies2d
         
-        
-                
-        
-            
-            
-        

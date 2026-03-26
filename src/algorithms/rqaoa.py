@@ -3,7 +3,6 @@ from algorithms.qaoa import QAOA
 from algorithms.operators import tensor, ZZ
 from collections import deque
 from algorithms.basealgorithm import BaseAlgorithm
-from utils.utils import initialize_angles
 import networkx as nx
 import numpy as np
 
@@ -139,7 +138,7 @@ class RQAOA(BaseAlgorithm):
     
     def run(self, initial_angles=[]):
         if not initial_angles:
-            initial_angles = initialize_angles(self.p)
+            initial_angles = self.initialize_angles()
         self.rqaoa(initial_angles)
         assignment = self.find_assignment(self.constraints)
         maxcut = [assignment[key] for key in sorted(assignment)]

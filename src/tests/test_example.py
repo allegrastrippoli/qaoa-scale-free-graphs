@@ -1,6 +1,6 @@
 from utils.generate import generate_bipartite_ring_network
 from utils.utils import brute_force_maxcut, maxcut_value
-from experiments.energylandscape import EnergyLandscape
+from optimization.energylandscape import EnergyLandscape
 from algorithms.algofactory import AlgorithmFactory
 from algorithms.lcqaoa import LightCone
 from utils.plots import plot_max_cut, plot_energy_landscape

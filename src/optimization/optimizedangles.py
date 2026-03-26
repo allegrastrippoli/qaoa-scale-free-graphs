@@ -29,10 +29,3 @@ class OptimizedAngles:
          betas = self.df["beta"].to_numpy()
          return gammas, betas
         
-        
-        
-                
-        
-            
-            
-        

@@ -1,5 +1,5 @@
 from utils.plots import  plot_optimized_angles, plot_optimized_angles_fixed_clusters
-from experiments.optimizedangles import OptimizedAngles
+from optimization.optimizedangles import OptimizedAngles
 from utils.generate import *
 from paths import *
 

@@ -1,4 +1,4 @@
-from experiments.energylandscape import EnergyLandscape
+from optimization.energylandscape import EnergyLandscape
 from algorithms.algofactory import AlgorithmFactory
 from utils.plots import plot_full_graph, plot_top_n_subgraphs, plot_energy_landscape
 from utils.generate import create_graph, generate_bounded_scale_free_graph
