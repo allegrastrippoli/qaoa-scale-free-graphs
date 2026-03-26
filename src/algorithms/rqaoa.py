@@ -1,6 +1,6 @@
 from scipy.optimize import minimize
 from algorithms.qaoa import QAOA
-from utils.operators import tensor, ZZ
+from algorithms.operators import tensor, ZZ
 from collections import deque
 from algorithms.basealgorithm import BaseAlgorithm
 from utils.utils import initialize_angles

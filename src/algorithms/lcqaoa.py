@@ -1,5 +1,5 @@
 from utils.utils import *
-from utils.operators import ZZ, graph_to_hamiltonian
+from algorithms.operators import ZZ, graph_to_hamiltonian
 from algorithms.qaoa import QAOA
 from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx

@@ -3,17 +3,13 @@ from scipy.optimize import minimize
 from utils.utils import initialize_angles
 import numpy as np
 
-# the bounds and the angles init methods assume that we use the ising hamiltonian and a standard mixer
-# the \gamma range goes from [0, pi]
-# the \beta range goes from [0, pi/2]
-
 class BaseAlgorithm(ABC):
-    def run(self, n_iter=0, multistart=False, initial_angles=None):
+    def run(self, multistart_iter=0, initial_angles=None):
         bounds = self._bounds()
-        if multistart and n_iter > 0:
-            print(f"Multistart init, {n_iter} iterations")
+        if multistart_iter > 0:
+            print(f"Multistart init, {multistart_iter} iterations")
             best_val = np.inf
-            for _ in range(n_iter):
+            for _ in range(multistart_iter):
                 initial_angles = initialize_angles(self.p)
                 res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
                 val = res.fun

@@ -1,9 +1,5 @@
-from collections import Counter
-from scipy.optimize import minimize
 from algorithms.basealgorithm import BaseAlgorithm
 import numpy as np
-import random 
-import time 
 
 class QAOA(BaseAlgorithm):
     def __init__(self,depth,H):     # Class initialization. Arguments are "depth",
