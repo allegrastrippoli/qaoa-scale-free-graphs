@@ -68,7 +68,7 @@ def run_example_max_cut():
           f"{ratio=}")
     plot_max_cut(G=G, best_bitstring=lc.best_bitstring, filename=rp.fig(category=Category.MAX_CUT, index="_lcqaoa"))    
     
-def run_example_regular_graph(ising):
+def run_example_regular_graph(costH):
     p = 1
     run_name=f"run_example_regular_graph"
     rp = RunPaths(run_name)
@@ -87,7 +87,7 @@ def run_example_regular_graph(ising):
     graphs.append(G3)
     el = EnergyLandscape()
     for i, G in enumerate(graphs):
-        L = LightCone(G, 0, 1, p, ising=ising)
+        L = LightCone(G, 0, 1, p, costH=costH)
         el.compute(fun=L.expectation)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
         gammas, betas, energies2d = el.grid()

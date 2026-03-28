@@ -1,29 +1,26 @@
 from utils.utils import *
-from algorithms.operators import ZZ, graph_to_hamiltonian
+from algorithms.operators import ZZ, graph_to_hamiltonian, CostH
 from algorithms.qaoa import QAOA
 from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx
 import numpy as np
 
 class LightCone:
-    def __init__(self, G, u, v, p, ising=True):
-        self.ising=ising
+    def __init__(self, G, u, v, p, costH):
+        self.costH=costH
         self.u, self.v = u, v
         self.mapping, self.v_sub, self.new_u, self.new_v = compute_subgraph_for_edge(G, u, v)
         v_sub_arr = nx.to_numpy_array(self.v_sub)
         self.n_sub: int = len(self.v_sub.nodes)
-        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub, self.ising)
-        self.Z_uZ_v = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub, self.ising)
+        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub, self.costH)
+        self.Z_uZ_v = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub, self.costH)
         self.Q = QAOA(p, self.H)
         
-    def expectation(self, angles, ising=True):
+    def expectation(self, angles):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * self.Z_uZ_v.reshape(col_shape))
-        if ising: 
-            return np.real(ex)
-        else:
-            return (1-np.real(ex))/2
+        return np.real(ex)
 
     def overlap(self, angles):     
         state = self.Q.qaoa_ansatz(angles)                                   
@@ -35,16 +32,17 @@ class LightCone:
         return olap
     
 class LCQAOA(BaseAlgorithm):
-    def __init__(self, G, p, ising=True, edges_subset=None):
+    def __init__(self, G, p, costH=CostH.MIN_ALIGNMENT, edges_subset=None):
         self.G = G
         self.p = p
+        self.costH = costH
         self.light_cones = []
         if edges_subset is None:
             for u, v in self.G.edges:
-                self.light_cones.append(LightCone(G, u, v, p, ising))
+                self.light_cones.append(LightCone(G, u, v, p, self.costH))
         else:
             for u, v in edges_subset:
-                self.light_cones.append(LightCone(G, u, v, p, ising))
+                self.light_cones.append(LightCone(G, u, v, p, self.costH))
         self.history = []
 
     def _postprocess(self, res): 
