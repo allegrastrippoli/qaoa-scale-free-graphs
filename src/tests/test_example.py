@@ -4,6 +4,7 @@ from optimization.energylandscape import EnergyLandscape
 from algorithms.algofactory import AlgorithmFactory
 from algorithms.lcqaoa import LightCone
 from utils.plots import plot_max_cut, plot_energy_landscape
+from tests.test_energy_landscape import compute_energy_landscape
 import networkx as nx
 from paths import *
 
@@ -13,23 +14,28 @@ def run_example_graph():
     G.add_nodes_from(range(4))
     G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
     q = AlgorithmFactory.create(name="qaoa", G=G, p=p)
-    q.run(multistart_iter=5)
+    q.run(multistart_iter=100)
     print(f"{q.best_bitstring=}\n",
           f"{q.angles=}\n", 
-          f"{q.olap=}\n")
+          f"{q.olap=}\n",
+          f"{q.q_energy=}\n")
     print("---------------------------------------------------------")
     rq = AlgorithmFactory.create(name="rqaoa", G=G, p=p)
     rq.run()
     print(f"{rq.best_bitstring=}\n",
-          f"{rq.mapping=}\n", 
-          f"{rq.constraints=}\n", 
-          f"{rq.history=}\n")
+          f"{rq.constraints=}\n")
+        #   f"{rq.history=}\n")
     print("---------------------------------------------------------")
     lc = AlgorithmFactory.create(name="lcqaoa", G=G, p=p)
     lc.run(multistart_iter=5)
     print(f"{lc.best_bitstring=}\n",
-          f"{lc.history=}\n")
-      
+          f"{lc.angles=}\n")
+        #   f"{lc.history=}\n")
+    print("---------------------------------------------------------")
+    a = AlgorithmFactory.create(name="aqaoa", G=G, p=p)
+    a.run(multistart_iter=100)
+    print(f"{a.angles=}\n", )
+    
 def run_example_max_cut():
     p = 1 
     run_name = f"run_example_max_cut"    
@@ -68,7 +74,7 @@ def run_example_max_cut():
           f"{ratio=}")
     plot_max_cut(G=G, best_bitstring=lc.best_bitstring, filename=rp.fig(category=Category.MAX_CUT, index="_lcqaoa"))    
     
-def run_example_regular_graph(costH):
+def run_example_regular_graph():
     p = 1
     run_name=f"run_example_regular_graph"
     rp = RunPaths(run_name)
@@ -87,7 +93,7 @@ def run_example_regular_graph(costH):
     graphs.append(G3)
     el = EnergyLandscape()
     for i, G in enumerate(graphs):
-        L = LightCone(G, 0, 1, p, costH=costH)
+        L = LightCone(G, 0, 1, p)
         el.compute(fun=L.expectation)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
         gammas, betas, energies2d = el.grid()

@@ -1,9 +1,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
-import random
-import numpy as np
 import itertools
-
 
 def compute_subgraph_for_edge(G, u, v):
     nodes =  set(G.neighbors(u)) | set(G.neighbors(v))
@@ -19,7 +16,6 @@ def compute_subgraph_for_edge(G, u, v):
     v_sub = nx.relabel_nodes(v_sub, mapping)
     return mapping, v_sub, mapping[u], mapping[v]
 
-
 def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
     a, b = edge
     degree_a = G.degree(a)
@@ -28,7 +24,6 @@ def neighborhood_size(G: nx.Graph, edge: tuple) -> int:
     neighbors_b = set(G.neighbors(b))
     common_neighbors = len(neighbors_a & neighbors_b)
     return degree_a + degree_b - common_neighbors
-
 
 def max_neighborhood_size(G: nx.Graph) -> tuple[int, tuple]:
     if G.number_of_edges() == 0:
@@ -42,7 +37,6 @@ def max_neighborhood_size(G: nx.Graph) -> tuple[int, tuple]:
             max_edge = edge
     return max_size, max_edge
 
-
 def top_n_max_neighborhood_size(G: nx.Graph, n: int):
     if G.number_of_edges() == 0:
         return 0, None
@@ -52,14 +46,12 @@ def top_n_max_neighborhood_size(G: nx.Graph, n: int):
     top_n_sizes = sorted(sizes, key=lambda x:x[1])[-n:]
     return [edge for edge, _ in top_n_sizes]
 
-
 def edge_neighborhood_subgraph(G: nx.Graph, edge: tuple) -> nx.Graph:
     u, v = edge
     nodes = {u, v}
     nodes.update(G.neighbors(u))
     nodes.update(G.neighbors(v))
     return G.subgraph(nodes).copy()
-
 
 def get_colors(G, top_n, top_n_edges):   
     cmap = plt.get_cmap("tab10", top_n)
@@ -79,14 +71,12 @@ def get_colors(G, top_n, top_n_edges):
     node_colors = [node_color_map[node] for node in G.nodes()]
     return edge_color_map, edge_colors, node_color_map, node_colors
     
-    
 def maxcut_value(G, bitstring):
     cut = 0
     for i, j in G.edges:
         if bitstring[i] != bitstring[j]:
             cut += 1
     return cut
-
 
 def brute_force_maxcut(G):
     n = len(G.nodes)

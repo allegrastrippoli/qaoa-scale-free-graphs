@@ -57,7 +57,6 @@ class QAOA(BaseAlgorithm):
 
     def U_gamma(self,angle,state):       # applies exp{-i\gamma H_z}, here as "U_gamma", on a "state".
         t = -1j*angle
-        H_new = self.H.reshape(2**self.n,1)
         state = state*np.exp(t*self.H.reshape(2**self.n,1))
         return state
 

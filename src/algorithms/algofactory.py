@@ -1,6 +1,7 @@
 from algorithms.operators import graph_to_hamiltonian
-from algorithms.lcqaoa import LCQAOA
-from algorithms.rqaoa import RQAOA
+from algorithms.lcqaoa import LightConesQAOA
+from algorithms.rqaoa import RecursiveQAOA
+from algorithms.aqaoa import AnalyticalQAOA
 from algorithms.qaoa import QAOA
 import networkx as nx
 
@@ -29,8 +30,12 @@ def build_qaoa(G, p, **kwargs):
 def build_rqaoa(G, p, **kwargs):
     H = graph_to_hamiltonian(nx.to_numpy_array(G), len(G.nodes))
     Q = QAOA(depth=p, H=H)
-    return RQAOA(depth=p, H=H, Q=Q, G=G)
+    return RecursiveQAOA(depth=p, H=H, Q=Q, G=G)
 
 @AlgorithmFactory.register("lcqaoa")
 def build_lcqaoa(G, p, **kwargs):
-    return LCQAOA(G=G, p=p, **kwargs)
+    return LightConesQAOA(G=G, p=p, **kwargs)
+
+@AlgorithmFactory.register("aqaoa")
+def build_lcqaoa(G, p, **kwargs):
+    return AnalyticalQAOA(G=G, p=p, **kwargs)

@@ -6,7 +6,7 @@ from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx
 import numpy as np
 
-class RQAOA(BaseAlgorithm):
+class RecursiveQAOA(BaseAlgorithm):
     def __init__(self, depth, H, Q, G):      
         self.initial_graph = G
         self.H = H

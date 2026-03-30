@@ -4,8 +4,10 @@ import pandas as pd
 class EnergyLandscape:
     def __init__(self, df=None):
         self.df = df
-       
-    def compute(self, fun, gamma_start=0, gamma_end=np.pi, beta_start=0, beta_end=np.pi/2, n_points=100):
+        
+    # def compute(self, fun, gamma_start=0, gamma_end=np.pi, beta_start=0, beta_end=np.pi/2, n_points=100):
+    def compute(self, fun, gamma_start=-2*np.pi, gamma_end=2*np.pi, beta_start=-np.pi/2, beta_end=np.pi/2, n_points=100):
+    # def compute(self, fun, gamma_start=0, gamma_end=2*np.pi, beta_start=0, beta_end=np.pi/2, n_points=100):
         self.n_points = n_points
         gammas = np.linspace(gamma_start, gamma_end, n_points)
         betas = np.linspace(beta_start, beta_end, n_points)
@@ -26,4 +28,3 @@ class EnergyLandscape:
         unique_betas = np.sort(self.df["beta"].unique())
         energies2d = self.df["energy"].values.reshape(len(unique_gammas), len(unique_betas))
         return unique_gammas, unique_betas, energies2d
-        

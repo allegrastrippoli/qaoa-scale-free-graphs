@@ -7,13 +7,19 @@ import numpy as np
 import pandas as pd
 
 # Given a csv file, plots the energy landscape 
-def plot_energy_landscape(gammas, betas, E, ax=None, save_fig=False, filename=""):
+def plot_energy_landscape(gammas, betas, E, points=None, ax=None,
+                          save_fig=False, filename=""):
     if ax is None:
         ax = plt.gca()
     im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
     ax.set_xlabel(r"$\beta$")
     ax.set_ylabel(r"$\gamma$")
     plt.colorbar(im, ax=ax, label="Energy")
+    if points is not None:
+        gammas_p = [p[0] for p in points]
+        betas_p  = [p[1] for p in points]
+        ax.scatter(betas_p,gammas_p,c="white",s=30,label="optimal angles")
+        ax.legend()
     if save_fig:
         plt.savefig(filename, dpi=300)
         plt.close()
@@ -41,7 +47,6 @@ def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     plt.savefig(filename, dpi=300)
     plt.close()
     
-    
 def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_nodes_lst, filename):
     cmap = plt.get_cmap("tab10", len(n_nodes_lst))
     plt.figure(figsize=(8, 6))
@@ -54,7 +59,6 @@ def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_nodes_lst, fil
     plt.grid(True)
     plt.savefig(filename, dpi=300)
     plt.close()
-    
     
 def cluster_zoom_in(betas_lst, gammas_lst, n_nodes_lst, fig_dir):
     cmap = plt.get_cmap("tab10", len(n_nodes_lst))
@@ -86,7 +90,6 @@ def cluster_zoom_in(betas_lst, gammas_lst, n_nodes_lst, fig_dir):
         plt.savefig(f"{fig_dir}/cluster_{cluster_id}.png", dpi=300, bbox_inches="tight")
         plt.close()
         
-
 # Input: two numpy arrays 
 # Output: a scatterplot that also shows average and standard deviation 
 def plot_optimized_angles(x, y, filename, eps=0.1, min_samples=5):
@@ -115,14 +118,12 @@ def plot_optimized_angles(x, y, filename, eps=0.1, min_samples=5):
     plt.savefig(filename, dpi=300)
     plt.close()
 
-
 def plot_full_graph(G, filename, node_colors=None, edge_colors=None):
     pos = nx.spring_layout(G)    
     plt.figure(figsize=(8, 8))
     nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True)
     plt.savefig(filename, dpi=300)
     plt.close()
-
 
 def plot_top_n_subgraphs(G, energies, edge_color_map, filename):
     # edge_color_map, edge_colors, node_color_map, node_colors = get_colors(G, top_n, top_n_edges) 
@@ -145,8 +146,7 @@ def plot_top_n_subgraphs(G, energies, edge_color_map, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
     plt.close(fig)
-       
-        
+           
 def plot_max_cut(G, best_bitstring, filename):
     node_colors = []
     for bit in best_bitstring:

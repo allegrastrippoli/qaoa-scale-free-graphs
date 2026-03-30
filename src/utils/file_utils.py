@@ -19,7 +19,6 @@ def graph_info(G, graphs_info_filename, graph_filename):
     df = pd.DataFrame([data])
     df.to_csv(graphs_info_filename, mode='a', index=False, header=False)
 
-
 def history_to_csv(algo_name, best_bitstring, history, filename):
     data = []
     data.append({"best_bitstring" : best_bitstring})

@@ -1,25 +1,24 @@
-from utils.utils import *
-from algorithms.operators import ZZ, graph_to_hamiltonian, CostH
+from utils.utils import compute_subgraph_for_edge
+from algorithms.operators import ZZ, graph_to_hamiltonian
 from algorithms.qaoa import QAOA
 from algorithms.basealgorithm import BaseAlgorithm
 import networkx as nx
 import numpy as np
 
 class LightCone:
-    def __init__(self, G, u, v, p, costH):
-        self.costH=costH
+    def __init__(self, G, u, v, p):
         self.u, self.v = u, v
         self.mapping, self.v_sub, self.new_u, self.new_v = compute_subgraph_for_edge(G, u, v)
         v_sub_arr = nx.to_numpy_array(self.v_sub)
         self.n_sub: int = len(self.v_sub.nodes)
-        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub, self.costH)
-        self.Z_uZ_v = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub, self.costH)
+        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub)
+        self.ZuZv = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub)
         self.Q = QAOA(p, self.H)
         
     def expectation(self, angles):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
-        ex = np.vdot(state, state * self.Z_uZ_v.reshape(col_shape))
+        ex = np.vdot(state, state * self.ZuZv.reshape(col_shape))
         return np.real(ex)
 
     def overlap(self, angles):     
@@ -31,18 +30,17 @@ class LightCone:
                 olap+= np.absolute(state[i])**2
         return olap
     
-class LCQAOA(BaseAlgorithm):
-    def __init__(self, G, p, costH=CostH.MIN_ALIGNMENT, edges_subset=None):
+class LightConesQAOA(BaseAlgorithm):
+    def __init__(self, G, p, edges_subset=None):
         self.G = G
         self.p = p
-        self.costH = costH
         self.light_cones = []
         if edges_subset is None:
             for u, v in self.G.edges:
-                self.light_cones.append(LightCone(G, u, v, p, self.costH))
+                self.light_cones.append(LightCone(G, u, v, p))
         else:
             for u, v in edges_subset:
-                self.light_cones.append(LightCone(G, u, v, p, self.costH))
+                self.light_cones.append(LightCone(G, u, v, p))
         self.history = []
 
     def _postprocess(self, res): 
@@ -50,10 +48,10 @@ class LCQAOA(BaseAlgorithm):
         self.save_history()
 
     def expectation(self, angles):
-        total_energy = 0.0
+        exp = 0.0
         for lc in self.light_cones:
-            total_energy += lc.expectation(angles)
-        return total_energy
+            exp += lc.expectation(angles)
+        return exp
     
     def find_bitstring(self, shots=100):
         edge_weights = {}
