@@ -9,17 +9,17 @@ class AlgorithmFactory:
     registry = {}
 
     @classmethod
-    def register(cls, name):
+    def register(cls, algo):
         def decorator(builder):
-            cls.registry[name] = builder
+            cls.registry[algo] = builder
             return builder
         return decorator
 
     @classmethod
-    def create(cls, name, *args, **kwargs):
-        if name not in cls.registry:
-            raise ValueError(f"Unknown algorithm {name}")
-        return cls.registry[name](*args, **kwargs)
+    def create(cls, algo, *args, **kwargs):
+        if algo not in cls.registry:
+            raise ValueError(f"Unknown algorithm {algo}")
+        return cls.registry[algo](*args, **kwargs)
     
 @AlgorithmFactory.register("qaoa")
 def build_qaoa(G, p, **kwargs):

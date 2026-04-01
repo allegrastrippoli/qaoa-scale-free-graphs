@@ -10,7 +10,7 @@ class OptimizedAngles:
     def compute(self, graphs, p, algo_name, history_filename=None, initial_angles=None, multistart_iter=0):
         data = []
         for i, G in enumerate(graphs):
-            algo = AlgorithmFactory.create(algo_name, G, p)
+            algo = AlgorithmFactory.create(algo=algo_name, G=G, p=p)
             algo.run(multistart_iter=multistart_iter, initial_angles=initial_angles)
             gamma, beta = algo.angles
             data.append([i, gamma, beta])

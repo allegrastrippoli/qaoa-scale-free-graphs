@@ -22,7 +22,7 @@ class RecursiveQAOA(BaseAlgorithm):
     def expectation(self, angles):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
-        ex = np.vdot(state, state * self.Z_iZ_j.reshape(col_shape))
+        ex = np.vdot(state, state * self.ZiZj.reshape(col_shape))
         return np.real(ex)
     
     def overlap(self, angles):
@@ -111,8 +111,8 @@ class RecursiveQAOA(BaseAlgorithm):
                 sub = self.G.subgraph(comp)
                 if sub.number_of_edges() == 1:
                     i, j = list(sub.edges)[0]
-                    Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
-                    self.Z_iZ_j = Z_iZ_j
+                    ZiZj = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
+                    self.ZiZj = ZiZj
                     exp = self.expectation(angles)
                     self.constraints[(self.mapping[i], self.mapping[j])] = np.sign(exp)
         if is_terminal():
@@ -123,8 +123,8 @@ class RecursiveQAOA(BaseAlgorithm):
         self.save_history(angles)
         magnitude = {}
         for (i,j) in self.G.edges:
-            Z_iZ_j = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
-            self.Z_iZ_j = Z_iZ_j
+            ZiZj = ZZ(nx.to_numpy_array(self.G), i, j, len(self.G.nodes))
+            self.ZiZj = ZiZj
             magnitude[(i, j)] = self.expectation(angles)
         (i,j), max_magn = max(magnitude.items(), key=lambda item: abs(item[1]))
         s = np.sign(max_magn) 
