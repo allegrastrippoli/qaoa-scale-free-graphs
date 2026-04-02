@@ -10,8 +10,8 @@ class AnalyticalQAOA(BaseAlgorithm):
         exp = 0.0
         for u,v in self.G.edges:
             exp += self.expectation_edge(u, v, angles)
-        return exp
-            
+        return -exp # the sign is - because we want min(-f(x))
+    
     def compute_triangles_containing_edge(self, u, v):
         neighbors_u = set(self.G.neighbors(u))
         neighbors_v = set(self.G.neighbors(v))

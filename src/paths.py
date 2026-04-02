@@ -6,7 +6,7 @@ class Category(str, Enum):
     ENERGY_LANDSCAPE = "energy_landscape"
     OPTIMIZED_ANGLES = "optimized_angles"
     HISTORY = "history"
-    DEGREE_DISTRIBUTION = "degree_distribution"
+    DEGREE_DISTRIBUTION = "degree_distribution/degree_distribution"
     FULL_GRAPH = "full_graph"
     MAX_CUT = "max_cut"
     GRAPH = "graph"
@@ -24,6 +24,9 @@ class RunPaths:
         }
         for d in self.dirs.values():
             d.mkdir(parents=True, exist_ok=True)
+            
+        Path(self.base / "figures" / "degree_distribution").mkdir(exist_ok=True)
+            
             
     def _name(self, category: Category, index=None):
         if not isinstance(category, Category):

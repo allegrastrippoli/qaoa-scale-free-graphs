@@ -6,20 +6,18 @@ import networkx as nx
 import numpy as np
 from paths import *
 
-def compute_energy_landscape(G: nx.Graph, p=1, index=0, algo="qaoa", gamma_start=0, gamma_end=2*np.pi, beta_start=0, beta_end=np.pi/2, **kwargs):
-        p = 1
-        run_name="test_energy_landscape"
+# run_name="test_energy_landscape"
+def compute_energy_landscape(run_name: str, G: nx.Graph, p=1, index=0, algo="qaoa", gamma_start=0, gamma_end=2*np.pi, beta_start=0, beta_end=np.pi/2,  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, **kwargs):
         rp = RunPaths(run_name)
         el = EnergyLandscape()
         q = AlgorithmFactory.create(algo=algo, G=G, p=p)
         el.compute(fun=q.expectation, gamma_start=gamma_start, gamma_end=gamma_end, beta_start=beta_start, beta_end=beta_end)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE, index=index))
         gammas, betas, energies2d = el.grid()
-        plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
+        plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, opt_gammas_lst=opt_gammas_lst, opt_betas_lst=opt_betas_lst, n_nodes_lst=n_nodes_lst, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
 
-def compute_top_n_subgraph_energy_landscape(G:nx.Graph, top_n=3):
-    p = 1
-    run_name="test_top_n_subgraph_energy_landscape"
+# run_name="test_top_n_subgraph_energy_landscape"
+def compute_top_n_subgraph_energy_landscape(run_name: str, G:nx.Graph, p=1, top_n=3):
     rp = RunPaths(run_name)
     el = EnergyLandscape()
     if top_n > 0:

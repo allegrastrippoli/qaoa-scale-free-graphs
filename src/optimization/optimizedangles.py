@@ -24,7 +24,7 @@ class OptimizedAngles:
     def load(self, filename):
         self.df = pd.read_csv(filename)
         
-    def opt_angles(self):
+    def get_opt_angles(self):
          gammas = self.df["gamma"].to_numpy()
          betas = self.df["beta"].to_numpy()
          return gammas, betas

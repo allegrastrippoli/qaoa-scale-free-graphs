@@ -6,7 +6,7 @@ class BaseAlgorithm(ABC):
     def run(self, multistart_iter=0, initial_angles=None):
         bounds = self._bounds()
         if multistart_iter > 0:
-            print(f"Multistart init, {multistart_iter} iterations")
+            # print(f"Multistart init, {multistart_iter} iterations")
             best_val = np.inf
             for _ in range(multistart_iter):
                 initial_angles = self.initialize_angles()

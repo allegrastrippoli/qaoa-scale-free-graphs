@@ -6,25 +6,23 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-# Given a csv file, plots the energy landscape 
-def plot_energy_landscape(gammas, betas, E, points=None, ax=None,
-                          save_fig=False, filename=""):
+def plot_energy_landscape(gammas, betas, E, ax=None,
+                          save_fig=False,  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, filename=""):
     if ax is None:
         ax = plt.gca()
     im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
     ax.set_xlabel(r"$\beta$")
     ax.set_ylabel(r"$\gamma$")
     plt.colorbar(im, ax=ax, label="Energy")
-    if points is not None:
-        gammas_p = [p[0] for p in points]
-        betas_p  = [p[1] for p in points]
-        ax.scatter(betas_p,gammas_p,c="white",s=30,label="optimal angles")
+    cmap = plt.get_cmap("tab10", len(n_nodes_lst))
+    for i, (betas, gammas) in enumerate(zip(opt_betas_lst, opt_gammas_lst)):
+        plt.scatter(betas, gammas, color=cmap(i), alpha=0.3, label=f"{n_nodes_lst[i]} nodes")
         ax.legend()
     if save_fig:
         plt.savefig(filename, dpi=300)
         plt.close()
 
-# Given a scale free graphs, plots the degree distribution, both linear and log-log 
+
 def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
     degrees = [G.degree(n) for n in G.nodes()]
     degree_counts = Counter(degrees)
@@ -81,8 +79,7 @@ def cluster_zoom_in(betas_lst, gammas_lst, n_nodes_lst, fig_dir):
                 group["alpha"],
                 c=[group["color"].iloc[0]],
                 alpha=0.3,
-                label=f"{n_nodes} nodes"
-            )
+                label=f"{n_nodes} nodes")
         plt.title(f"Cluster {cluster_id}")
         plt.xlabel("beta")
         plt.ylabel("alpha")
@@ -90,8 +87,6 @@ def cluster_zoom_in(betas_lst, gammas_lst, n_nodes_lst, fig_dir):
         plt.savefig(f"{fig_dir}/cluster_{cluster_id}.png", dpi=300, bbox_inches="tight")
         plt.close()
         
-# Input: two numpy arrays 
-# Output: a scatterplot that also shows average and standard deviation 
 def plot_optimized_angles(x, y, filename, eps=0.1, min_samples=5):
     plt.figure(figsize=(8, 6))
     data = np.column_stack((x, y))
