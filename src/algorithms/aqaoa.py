@@ -3,15 +3,15 @@ import numpy as np
 
 class AnalyticalQAOA(BaseAlgorithm):
     def __init__(self, G, p):
+        super().__init__(p)
         self.G = G
-        self.p = p
         
     def expectation(self, angles):
         exp = 0.0
         for u,v in self.G.edges:
             exp += self.expectation_edge(u, v, angles)
-        return -exp # the sign is - because we want min(-f(x))
-    
+        return -exp # -exp if we want to minimize min(-f(x))
+
     def compute_triangles_containing_edge(self, u, v):
         neighbors_u = set(self.G.neighbors(u))
         neighbors_v = set(self.G.neighbors(v))
@@ -33,4 +33,6 @@ class AnalyticalQAOA(BaseAlgorithm):
         return exp
         
     def _postprocess(self, res):
-        pass
+        self.angles = res.x
+        self.energy = res.fun
+

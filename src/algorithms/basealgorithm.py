@@ -3,10 +3,14 @@ from scipy.optimize import minimize
 import numpy as np
 
 class BaseAlgorithm(ABC):
+    def __init__(self, p):
+        self.p = p
+        self.angles = None
+        self.energy = None
+        
     def run(self, multistart_iter=0, initial_angles=None):
         bounds = self._bounds()
         if multistart_iter > 0:
-            # print(f"Multistart init, {multistart_iter} iterations")
             best_val = np.inf
             for _ in range(multistart_iter):
                 initial_angles = self.initialize_angles()
@@ -14,12 +18,10 @@ class BaseAlgorithm(ABC):
                 val = res.fun
                 if val < best_val:
                     best_val = val
-                    self.angles = res.x
         else:
             if initial_angles is None:
                 initial_angles = self.initialize_angles()
             res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
-            self.angles = res.x
         self._postprocess(res)
 
     def _bounds(self):

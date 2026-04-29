@@ -14,10 +14,11 @@ def plot_energy_landscape(gammas, betas, E, ax=None,
     ax.set_xlabel(r"$\beta$")
     ax.set_ylabel(r"$\gamma$")
     plt.colorbar(im, ax=ax, label="Energy")
-    cmap = plt.get_cmap("tab10", len(n_nodes_lst))
-    for i, (betas, gammas) in enumerate(zip(opt_betas_lst, opt_gammas_lst)):
-        plt.scatter(betas, gammas, color=cmap(i), alpha=0.3, label=f"{n_nodes_lst[i]} nodes")
-        ax.legend()
+    if opt_gammas_lst is not None and opt_betas_lst is not None:
+        cmap = plt.get_cmap("tab10", len(n_nodes_lst))
+        for i, (b, g) in enumerate(zip(opt_betas_lst, opt_gammas_lst)):
+            plt.scatter(b, g, color=cmap(i), alpha=0.3, label=f"{n_nodes_lst[i]} nodes")
+            ax.legend()
     if save_fig:
         plt.savefig(filename, dpi=300)
         plt.close()

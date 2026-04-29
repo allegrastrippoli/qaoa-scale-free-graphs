@@ -24,13 +24,13 @@ class AlgorithmFactory:
 @AlgorithmFactory.register("qaoa")
 def build_qaoa(G, p, **kwargs):
     H = graph_to_hamiltonian(nx.to_numpy_array(G), len(G.nodes))
-    return QAOA(depth=p, H=H)
+    return QAOA(p=p, H=H)
 
 @AlgorithmFactory.register("rqaoa")
 def build_rqaoa(G, p, **kwargs):
     H = graph_to_hamiltonian(nx.to_numpy_array(G), len(G.nodes))
-    Q = QAOA(depth=p, H=H)
-    return RecursiveQAOA(depth=p, H=H, Q=Q, G=G)
+    Q = QAOA(p=p, H=H)
+    return RecursiveQAOA(p=p, H=H, Q=Q, G=G)
 
 @AlgorithmFactory.register("lcqaoa")
 def build_lcqaoa(G, p, **kwargs):

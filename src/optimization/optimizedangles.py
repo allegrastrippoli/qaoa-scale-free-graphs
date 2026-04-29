@@ -14,8 +14,8 @@ class OptimizedAngles:
             algo.run(multistart_iter=multistart_iter, initial_angles=initial_angles)
             gamma, beta = algo.angles
             data.append([i, gamma, beta, algo.energy])
-            if hasattr(algo, "history") and algo.history:
-                history_to_csv(algo_name=algo_name, best_bitstring=algo.best_bitstring, history=algo.history, filename=history_filename)
+            # if hasattr(algo, "history") and algo.history:
+            #     history_to_csv(algo_name=algo_name, best_bitstring=algo.best_bitstring, history=algo.history, filename=history_filename)
         self.df = pd.DataFrame(data, columns=["graph_id", "gamma", "beta", "energy"])
             
     def save(self, filename):

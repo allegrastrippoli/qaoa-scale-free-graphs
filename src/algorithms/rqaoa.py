@@ -7,12 +7,12 @@ import networkx as nx
 import numpy as np
 
 class RecursiveQAOA(BaseAlgorithm):
-    def __init__(self, depth, H, Q, G):      
+    def __init__(self, p, H, Q, G):     
+        super().__init__(p) 
         self.initial_graph = G
         self.H = H
         self.Q = Q
         self.G = G
-        self.p = depth
 
         self.mapping = {i: i for i in list(self.G.nodes)}  # The arguments are “mappings”, maps the ids of the initial nodes to the new ids,
                                                                  # assigned after removing nodes during recursion. 
@@ -91,7 +91,6 @@ class RecursiveQAOA(BaseAlgorithm):
     def save_history(self, angles):
         ground_state = format(np.argmin(self.Q.H), f"0{len(self.G.nodes)}b")
         overlap = self.overlap(angles)
-
         self.history.append({
             "num_nodes": len(self.G.nodes),
             "ground_state": ground_state,
@@ -168,3 +167,5 @@ class RecursiveQAOA(BaseAlgorithm):
                         if assignment[v] != expected:
                             raise ValueError(f"Constraints are inconsistent node: {u}, {assignment[v]} != {expected}. Constraints {constraints}")
         return assignment
+
+        

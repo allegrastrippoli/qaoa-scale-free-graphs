@@ -20,7 +20,8 @@ def ZZ(G, i, j, n):
         k[j] = Z
         return tensor(k) 
 
-def graph_to_hamiltonian(G,n): 
+
+def graph_to_hamiltonian(G,n, scaling=False): 
     H = np.zeros((2**n), dtype = 'float64') 
     Z = np.array([1,-1],dtype = 'float64')
     for i in range(n):
@@ -31,6 +32,10 @@ def graph_to_hamiltonian(G,n):
             if G[i][j] !=0: 
                 k[i] = Z
                 k[j] = Z
-                H+= tensor(k)*G[i][j]
+                if scaling:
+                    H+= tensor(k)*G[i][j] 
+                else:
+                    zz = tensor(k) 
+                    H += 0.5 * G[i][j] * (1 - zz) 
             j+=1
     return H

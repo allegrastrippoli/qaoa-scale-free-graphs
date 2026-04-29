@@ -2,8 +2,9 @@ from algorithms.basealgorithm import BaseAlgorithm
 import numpy as np
 
 class QAOA(BaseAlgorithm):
-    def __init__(self,depth,H):     # Class initialization. Arguments are "depth",
-                                    # and a Diagonal Hamiltonian,"H".
+    def __init__(self,p,H):     # Class initialization. Arguments are "depth",
+                                            # and a Diagonal Hamiltonian,"H".
+        super().__init__(p)
         self.H = H 
         self.n = int(np.log2(int(len(self.H)))) # Calculates the number of qubits.
 
@@ -17,7 +18,6 @@ class QAOA(BaseAlgorithm):
         self.min = min(self.H)                  # Calculates minimum of the Hamiltonain, Ground state energy.
 
         self.deg = len(self.H[self.H == self.min]) # Calculates the degeneracy of Ground states.
-        self.p = depth                             # Standard qaoa depth written as "p".
 
         #______________________________________________________________________________________________________
 
@@ -118,8 +118,9 @@ class QAOA(BaseAlgorithm):
                     #    and also the optimal state, here as "f_state"
 
     def _postprocess(self, res):
-        self.q_energy = self.expectation(res.x)
-        self.q_error = self.q_energy - self.min
+        self.angles = res.x
+        self.energy = res.fun
+        self.q_error = self.energy - self.min
         self.f_state = self.qaoa_ansatz(res.x)
         self.olap = self.overlap(self.f_state)[0]
         self.best_bitstring = np.binary_repr(int(np.argmax(np.abs(self.f_state))), width=self.n)

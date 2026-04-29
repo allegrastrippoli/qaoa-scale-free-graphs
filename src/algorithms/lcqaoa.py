@@ -15,11 +15,14 @@ class LightCone:
         self.ZuZv = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub)
         self.Q = QAOA(p, self.H)
         
-    def expectation(self, angles):
+    def expectation(self, angles, scaling=False):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * self.ZuZv.reshape(col_shape))
-        return np.real(ex)
+        if scaling:
+            return np.real(ex)
+        else:
+            return (1-np.real(ex))/2
 
     def overlap(self, angles):     
         state = self.Q.qaoa_ansatz(angles)                                   
@@ -32,8 +35,8 @@ class LightCone:
     
 class LightConesQAOA(BaseAlgorithm):
     def __init__(self, G, p, edges_subset=None):
+        super().__init__(p)
         self.G = G
-        self.p = p
         self.light_cones = []
         if edges_subset is None:
             for u, v in self.G.edges:
@@ -44,6 +47,8 @@ class LightConesQAOA(BaseAlgorithm):
         self.history = []
 
     def _postprocess(self, res): 
+        self.angles = res.x
+        self.energy = res.fun
         self.best_bitstring = self.find_bitstring()
         self.save_history()
 
@@ -51,7 +56,7 @@ class LightConesQAOA(BaseAlgorithm):
         exp = 0.0
         for lc in self.light_cones:
             exp += lc.expectation(angles)
-        return exp
+        return  exp
     
     def find_bitstring(self, shots=100):
         edge_weights = {}
