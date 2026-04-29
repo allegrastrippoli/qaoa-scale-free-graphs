@@ -22,29 +22,29 @@ def plot_energy_landscape(gammas, betas, E, ax=None,
     if save_fig:
         plt.savefig(filename, dpi=300)
         plt.close()
-
-
-def plot_degree_distribution(G: nx.Graph, gamma: float, filename):
-    degrees = [G.degree(n) for n in G.nodes()]
+        
+def plot_degree_distribution(G, filename):
+    degrees = [d for _, d in G.degree()]
     degree_counts = Counter(degrees)
-    ks = sorted(degree_counts.keys())
-    counts = [degree_counts[k] for k in ks]
+    deg, freq = zip(*sorted(degree_counts.items()))
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    axes[0].bar(ks, counts, color='steelblue', alpha=0.7)
-    axes[0].set_xlabel('Degree (k)')
-    axes[0].set_ylabel('Count')
-    axes[0].set_title(f'Degree Distribution (Linear) - γ={gamma:.2f}')
-    ks_positive = [k for k in ks if k > 0]
-    counts_positive = [degree_counts[k] for k in ks_positive]
-    axes[1].scatter(ks_positive, counts_positive, color='green', alpha=0.7)
+
+    axes[0].scatter(deg, freq)
+    axes[0].set_title("Degree Distribution (Linear Scale)")
+    axes[0].set_xlabel("Degree")
+    axes[0].set_ylabel("Frequency")
+
+    axes[1].scatter(deg, freq)
     axes[1].set_xscale('log')
     axes[1].set_yscale('log')
-    axes[1].set_xlabel('Degree (k)')
-    axes[1].set_ylabel('Count')
-    axes[1].set_title(f'Degree Distribution (Log-Log) - γ={gamma:.2f}')
+    axes[1].set_title("Degree Distribution (Log-Log Scale)")
+    axes[1].set_xlabel("Degree")
+    axes[1].set_ylabel("Frequency")
+
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
     plt.close()
+
     
 def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_nodes_lst, filename):
     cmap = plt.get_cmap("tab10", len(n_nodes_lst))

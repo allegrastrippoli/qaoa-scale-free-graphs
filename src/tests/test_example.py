@@ -15,7 +15,7 @@ def run_example_graph():
     G.add_nodes_from(range(4))
     G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
     q = AlgorithmFactory.create(algo="qaoa", G=G, p=p)
-    q.run(multistart_iter=100)
+    q.run(iter=100)
     print(f"{q.best_bitstring=}\n",
           f"{q.angles=}\n", 
           f"{q.olap=}\n",
@@ -28,14 +28,14 @@ def run_example_graph():
     #       f"{rq.history=}\n")
     # print("---------------------------------------------------------")
     lc = AlgorithmFactory.create(algo="lcqaoa", G=G, p=p)
-    lc.run(multistart_iter=100)
+    lc.run(iter=100)
     print(f"{lc.best_bitstring=}\n",
           f"{lc.angles=}\n",
           f"{lc.energy=}\n",
           f"{lc.history=}\n")
     print("---------------------------------------------------------")
     a = AlgorithmFactory.create(algo="aqaoa", G=G, p=p)
-    a.run(multistart_iter=100)
+    a.run(iter=100)
     print(f"{a.angles=}\n",
           f"{a.energy=}\n")
     
@@ -48,7 +48,7 @@ def run_example_max_cut():
     exact_bitstring = ''.join(str(b) for b in exact_bitstring)
     plot_max_cut(G=G, best_bitstring=exact_bitstring, filename=rp.fig(category=Category.MAX_CUT, index="_exact_cut"))
     q = AlgorithmFactory.create(algo="qaoa", G=G, p=p)
-    q.run(multistart_iter=100)
+    q.run(iter=100)
     opt_value = maxcut_value(G, q.best_bitstring)
     ratio = opt_value / exact_value
     print(f"{q.best_bitstring=}\n",
@@ -59,7 +59,7 @@ def run_example_max_cut():
     plot_max_cut(G=G, best_bitstring=q.best_bitstring, filename=rp.fig(category=Category.MAX_CUT, index="_qaoa"))
     print("---------------------------------------------------------")
     lc = AlgorithmFactory.create(algo="lcqaoa", G=G, p=p)
-    lc.run(multistart_iter=100)
+    lc.run(iter=100)
     opt_value = maxcut_value(G, lc.best_bitstring)
     ratio = opt_value / exact_value
     print(f"{lc.best_bitstring=}\n",

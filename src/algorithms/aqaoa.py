@@ -33,6 +33,5 @@ class AnalyticalQAOA(BaseAlgorithm):
         return exp
         
     def _postprocess(self, res):
-        self.angles = res.x
-        self.energy = res.fun
+        pass
 

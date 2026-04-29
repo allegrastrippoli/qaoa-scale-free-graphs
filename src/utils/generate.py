@@ -5,10 +5,10 @@ from paths import *
 from utils.plots import plot_degree_distribution
 from utils.utils import *
 
-def create_graph(rp, fun, n_nodes, gamma, index=None):
-    G = fun(n_nodes, gamma)
+def create_graph(rp, fun, n, m,  index=None):
+    G = fun(n, m)
     graph_info(G=G, graphs_info_filename=rp.log(category=Category.GRAPHS_INFO), graph_filename=rp.graphs(category=Category.GRAPH, index=index))
-    plot_degree_distribution(G=G, gamma=gamma, filename=rp.fig(category=Category.DEGREE_DISTRIBUTION, index=index))
+    plot_degree_distribution(G=G, filename=rp.fig(category=Category.DEGREE_DISTRIBUTION, index=index))
     return G
 
 def relabel_white_black(G: nx.Graph, n: int) -> nx.Graph:

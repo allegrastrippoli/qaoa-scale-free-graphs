@@ -47,8 +47,6 @@ class LightConesQAOA(BaseAlgorithm):
         self.history = []
 
     def _postprocess(self, res): 
-        self.angles = res.x
-        self.energy = res.fun
         self.best_bitstring = self.find_bitstring()
         self.save_history()
 

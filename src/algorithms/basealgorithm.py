@@ -8,21 +8,21 @@ class BaseAlgorithm(ABC):
         self.angles = None
         self.energy = None
         
-    def run(self, multistart_iter=0, initial_angles=None):
+    def run(self, iter=1, initial_angles=None):
         bounds = self._bounds()
-        if multistart_iter > 0:
+        if iter > 0:
             best_val = np.inf
-            for _ in range(multistart_iter):
+            for _ in range(iter):
                 initial_angles = self.initialize_angles()
                 res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
                 val = res.fun
                 if val < best_val:
                     best_val = val
+                    self.angles = res.x     
+                    self.energy = res.fun 
+            self._postprocess(res)
         else:
-            if initial_angles is None:
-                initial_angles = self.initialize_angles()
-            res = minimize(self.expectation, initial_angles, method="L-BFGS-B", bounds=bounds, options={"maxiter": 1000})
-        self._postprocess(res)
+            raise ValueError("iter must be > 0")
 
     def _bounds(self):
         return [(0, np.pi)]*self.p + [(0,np.pi/2)]*self.p

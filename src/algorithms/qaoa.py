@@ -118,8 +118,6 @@ class QAOA(BaseAlgorithm):
                     #    and also the optimal state, here as "f_state"
 
     def _postprocess(self, res):
-        self.angles = res.x
-        self.energy = res.fun
         self.q_error = self.energy - self.min
         self.f_state = self.qaoa_ansatz(res.x)
         self.olap = self.overlap(self.f_state)[0]
