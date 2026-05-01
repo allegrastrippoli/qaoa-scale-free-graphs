@@ -40,7 +40,7 @@ def build_lcqaoa(G, p, **kwargs):
     return LightConesQAOA(G=G, p=p, **kwargs)
 
 @AlgorithmFactory.register("aqaoa")
-def build_lcqaoa(G, p, **kwargs):
+def build_aqaoa(G, p, **kwargs):
     _validate_inputs(G, p)
     return AnalyticalQAOA(G=G, p=p, **kwargs)
 

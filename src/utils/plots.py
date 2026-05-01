@@ -41,6 +41,7 @@ def plot_degree_distribution(G, filename):
     axes[1].set_xlabel("Degree")
     axes[1].set_ylabel("Frequency")
 
+    plt.grid()
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
     plt.close()
