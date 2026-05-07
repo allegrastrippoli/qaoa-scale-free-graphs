@@ -1,34 +1,27 @@
 from optimization.energylandscape import EnergyLandscape
-from algorithms.algofactory import AlgorithmFactory
 from utils.plots import plot_full_graph, plot_top_n_subgraphs, plot_energy_landscape
+from algorithms.algofactory import AlgorithmFactory
 from utils.utils import top_n_max_neighborhood_size, get_colors
 import networkx as nx
-import numpy as np
 from paths import *
 
 # run_name="test_energy_landscape"
-def compute_energy_landscape(run_name: str, G: nx.Graph, p=1, index=0, algo="qaoa", gamma_start=0, gamma_end=2*np.pi, beta_start=0, beta_end=np.pi/2,  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, **kwargs):
+def compute_energy_landscape(run_name: str, G: nx.Graph, p=1, index=0, algo="qaoa",  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, **kwargs):
         rp = RunPaths(run_name)
         el = EnergyLandscape()
-        q = AlgorithmFactory.create(algo=algo, G=G, p=p)
-        el.compute(fun=q.expectation, gamma_start=gamma_start, gamma_end=gamma_end, beta_start=beta_start, beta_end=beta_end)
+        q = AlgorithmFactory.create(algo=algo, G=G, p=p, **kwargs)
+        el.compute(fun=q.expectation, **kwargs)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE, index=index))
         gammas, betas, energies2d = el.grid()
         plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, opt_gammas_lst=opt_gammas_lst, opt_betas_lst=opt_betas_lst, n_nodes_lst=n_nodes_lst, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
+        
 
-# run_name="test_top_n_subgraph_energy_landscape"
-def compute_top_n_subgraph_energy_landscape(run_name: str, G:nx.Graph, p=1, top_n=3):
-    rp = RunPaths(run_name)
-    el = EnergyLandscape()
-    if top_n > 0:
-        top_n_edges = top_n_max_neighborhood_size(G, top_n)
-        light_cones = AlgorithmFactory.create(algo="lcqaoa", G=G, p=p, edges_subset=top_n_edges)
-        energies = {}
-        for i, lc in enumerate(light_cones.light_cones):
-            el.compute(fun=lc.expectation)
-            el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
-            gammas, betas, energies2d = el.grid()
-            energies[(lc.u, lc.v)] = [gammas, betas, energies2d]
-        edge_color_map, edge_colors, _, node_colors = get_colors(G, top_n, top_n_edges)
-        plot_full_graph(G=G, node_colors=node_colors, edge_colors=edge_colors, filename=rp.fig(category=Category.FULL_GRAPH))
-        plot_top_n_subgraphs(G=G, energies=energies, edge_color_map=edge_color_map, filename=rp.fig(category=Category.ENERGY_LANDSCAPE))
+def run_example_energy_landscape(**kwargs):
+    run_name="test_energy_landscape"
+    G = nx.Graph()
+    G.add_nodes_from(range(5))
+    G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
+    compute_energy_landscape(run_name=run_name, G=G, algo="lcqaoa", **kwargs)
+    compute_energy_landscape(run_name=run_name,G=G, algo="aqaoa", index=1)
+
+    

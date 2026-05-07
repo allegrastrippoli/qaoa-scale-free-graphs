@@ -6,20 +6,21 @@ import networkx as nx
 import numpy as np
 
 class LightCone:
-    def __init__(self, G, u, v, p):
+    def __init__(self, G, u, v, p, scaling):
+        self.scaling = scaling
         self.u, self.v = u, v
         self.mapping, self.v_sub, self.new_u, self.new_v = compute_subgraph_for_edge(G, u, v)
         v_sub_arr = nx.to_numpy_array(self.v_sub)
         self.n_sub: int = len(self.v_sub.nodes)
-        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub)
+        self.H = graph_to_hamiltonian(v_sub_arr,  self.n_sub, self.scaling)
         self.ZuZv = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub)
         self.Q = QAOA(p, self.H)
         
-    def expectation(self, angles, scaling=True):
+    def expectation(self, angles):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * self.ZuZv.reshape(col_shape))
-        if scaling:
+        if self.scaling:
             return -(1-np.real(ex))/2 # min(-f(x))
         else:
             return np.real(ex)
@@ -34,16 +35,17 @@ class LightCone:
         return olap
     
 class LightConesQAOA(BaseAlgorithm):
-    def __init__(self, G, p, edges_subset=None):
+    def __init__(self, G, p, edges_subset=None, **kwargs):
         super().__init__(p)
+        scaling = kwargs.get("scaling", True)
         self.G = G
         self.light_cones = []
         if edges_subset is None:
             for u, v in self.G.edges:
-                self.light_cones.append(LightCone(G, u, v, p))
+                self.light_cones.append(LightCone(G, u, v, p, scaling))
         else:
             for u, v in edges_subset:
-                self.light_cones.append(LightCone(G, u, v, p))
+                self.light_cones.append(LightCone(G, u, v, p, scaling))
         self.history = []
 
     def _postprocess(self, res): 

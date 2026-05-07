@@ -66,7 +66,7 @@ def run_example_max_cut():
           f"{ratio=}")
     plot_max_cut(G=G, best_bitstring=lc.best_bitstring, filename=rp.fig(category=Category.MAX_CUT, index="_lcqaoa"))    
     
-def run_example_regular_graph():
+def run_example_regular_graph(**kwargs):
     p = 1
     run_name=f"run_example_regular_graph"
     rp = RunPaths(run_name)
@@ -84,17 +84,11 @@ def run_example_regular_graph():
     graphs.append(G2)
     graphs.append(G3)
     el = EnergyLandscape()
+    scaling = kwargs.get("scaling", True)
     for i, G in enumerate(graphs):
-        L = LightCone(G, 0, 1, p)
-        el.compute(fun=L.expectation)
+        L = LightCone(G, 0, 1, p, scaling)
+        el.compute(fun=L.expectation, **kwargs)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
         gammas, betas, energies2d = el.grid()
         plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=i))
 
-def test_energy_landscape():
-    run_name="test_energy_landscape"
-    G = nx.Graph()
-    G.add_nodes_from(range(5))
-    G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
-    compute_energy_landscape(run_name=run_name, G=G, algo="lcqaoa")
-    compute_energy_landscape(run_name=run_name,G=G, algo="aqaoa", index=1)
