@@ -15,15 +15,15 @@ class LightCone:
         self.ZuZv = ZZ(v_sub_arr, self.new_u, self.new_v, self.n_sub)
         self.Q = QAOA(p, self.H)
         
-    def expectation(self, angles, scaling=False):
+    def expectation(self, angles, scaling=True):
         state = self.Q.qaoa_ansatz(angles)
         col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * self.ZuZv.reshape(col_shape))
         if scaling:
-            return np.real(ex)
+            return -(1-np.real(ex))/2 # min(-f(x))
         else:
-            return (1-np.real(ex))/2
-
+            return np.real(ex)
+  
     def overlap(self, angles):     
         state = self.Q.qaoa_ansatz(angles)                                   
         g_ener = min(self.H)
