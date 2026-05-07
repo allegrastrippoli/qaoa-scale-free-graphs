@@ -8,9 +8,9 @@ from paths import *
 import numpy as np
 import networkx as nx 
 import matplotlib.pyplot as plt
-  
+
 # run_name = "optimize_angles_increasing_n_nodes_fixed_gamma"
-def optimize_angles_increasing_n_nodes_fixed_gamma(run_name, start_n, end_n,  n_graphs, iter, *args, algo_name="aqaoa", p=1, step=50, **kwargs):
+def optimize_angles_increasing_n_nodes_fixed_gamma(run_name, start_n, end_n,  *args,  iter=100, n_graphs=10, algo_name="aqaoa", p=1, step=50, **kwargs):
     rp = RunPaths(run_name)
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")
