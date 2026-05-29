@@ -3,6 +3,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import os 
+
 def graph_info(G, graphs_info_filename, graph_filename):
     degrees = [G.degree(n) for n in G.nodes()]
     max_ns, max_edge = max_neighborhood_size(G)

@@ -8,11 +8,10 @@ import numpy as np
 import pandas as pd
 from paths import *
 
-def plot_gamma_beta_g_energy_nodes(run_name, filename):
+def plot_gamma_beta_g_energy_nodes(rp, filename):
     df = pd.read_csv(filename, sep=",")
     df.columns = df.columns.str.strip()
 
-    rp = RunPaths(run_name=run_name)
     output_path = rp.dirs["metrics"]
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -109,25 +108,21 @@ def plot_degree_distribution(G, filename):
     degree_counts = Counter(degrees)
     deg, freq = zip(*sorted(degree_counts.items()))
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
     axes[0].scatter(deg, freq)
     axes[0].set_title("Degree Distribution (Linear Scale)")
     axes[0].set_xlabel("Degree")
     axes[0].set_ylabel("Frequency")
-
     axes[1].scatter(deg, freq)
     axes[1].set_xscale('log')
     axes[1].set_yscale('log')
     axes[1].set_title("Degree Distribution (Log-Log Scale)")
     axes[1].set_xlabel("Degree")
     axes[1].set_ylabel("Frequency")
-
     plt.grid()
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
     plt.close()
 
-    
 def plot_optimized_angles_fixed_clusters(betas_lst, gammas_lst, n_nodes_lst, filename):
     cmap = plt.get_cmap("tab10", len(n_nodes_lst))
     plt.figure(figsize=(8, 6))

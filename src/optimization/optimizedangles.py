@@ -21,15 +21,14 @@ class OptimizedAngles:
         for i, value in enumerate(args):
             row[f"arg_{i}"] = value
         row.update(kwargs)
-        return row
-            
+        return row         
             
     def build_dataframe(self, rows):
         self.df = pd.DataFrame(rows)
         
     def save(self, filename):
-        file_exists = os.path.isfile(filename)
-        self.df.to_csv(filename, mode='a', header=not file_exists, index=False)
+        header = not os.path.exists(filename)
+        self.df.to_csv(filename, mode='a', header=header, index=False)
          
     def load(self, filename):
         self.df = pd.read_csv(filename)

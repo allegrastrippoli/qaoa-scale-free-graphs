@@ -1,5 +1,6 @@
 from pathlib import Path
 from enum import Enum
+import shutil
 
 class Category(str, Enum):
     GRAPHS_INFO = "graphs_info"
@@ -17,6 +18,9 @@ OUTPUT_DIR = BASE_DIR / "output"
 class RunPaths:
     def __init__(self, run_name):
         self.base = OUTPUT_DIR / run_name
+        if self.base.exists():
+            shutil.rmtree(self.base)
+        self.base.mkdir(parents=True, exist_ok=True)
         self.dirs = {
             "log": self.base / "log",
             "fig": self.base / "figures",
@@ -25,14 +29,12 @@ class RunPaths:
         }
         for d in self.dirs.values():
             d.mkdir(parents=True, exist_ok=True)
-            
-        Path(self.base / "figures" / "degree_distribution").mkdir(exist_ok=True)
-            
+        (self.base / "figures" / "degree_distribution").mkdir(parents=True, exist_ok=True)  
             
     def _name(self, category: Category, index=None):
         if not isinstance(category, Category):
-            raise TypeError("category must be a Category enum")
-        return f"{category.value}{index}" if index is not None else category.value
+            raise TypeError("Category must be a Category enum")
+        return (f"{category.value}{index}" if index is not None else category.value)
 
     def log(self, category: Category, index=None):
         return self.dirs["log"] / f"{self._name(category, index)}.csv"
