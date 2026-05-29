@@ -1,13 +1,94 @@
 from collections import Counter
 from utils.utils import *
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 from sklearn.cluster import DBSCAN
 import networkx as nx
 import numpy as np
 import pandas as pd
+from paths import *
 
-def plot_energy_landscape(gammas, betas, E, ax=None,
-                          save_fig=False,  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, filename=""):
+def plot_gamma_beta_g_energy_nodes(run_name, filename):
+    df = pd.read_csv(filename, sep=",")
+    df.columns = df.columns.str.strip()
+
+    rp = RunPaths(run_name=run_name)
+    output_path = rp.dirs["metrics"]
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    metrics = ["gamma", "beta", "energy"]
+
+    # Normalize color scales
+    g_norm = Normalize(vmin=df["g"].min(), vmax=df["g"].max())
+    nodes_norm = Normalize(vmin=df["nodes"].min(), vmax=df["nodes"].max())
+
+    cmap = plt.cm.coolwarm
+
+    # ---------------------------------------------------
+    # metric vs nodes (color by g)
+    # ---------------------------------------------------
+    for metric in metrics:
+        plt.figure(figsize=(7, 5))
+
+        sc = plt.scatter(
+            df["nodes"],
+            df[metric],
+            c=df["g"],          
+            cmap=cmap,
+            norm=g_norm,
+            s=60
+        )
+
+        plt.xlabel("nodes")
+        plt.ylabel(metric)
+        plt.title(f"{metric} vs nodes")
+
+        cbar = plt.colorbar(sc)
+        cbar.set_label("g")
+
+        plt.grid(True)
+        plt.tight_layout()
+
+        plt.savefig(
+            output_path / f"{metric}_vs_nodes.png",
+            dpi=300,
+            bbox_inches="tight"
+        )
+        plt.close()
+
+    # ---------------------------------------------------
+    # metric vs g (color by nodes)
+    # ---------------------------------------------------
+    for metric in metrics:
+        plt.figure(figsize=(7, 5))
+
+        sc = plt.scatter(
+            df["g"],
+            df[metric],
+            c=df["nodes"],      # continuous color variable
+            cmap=cmap,
+            norm=nodes_norm,
+            s=60
+        )
+
+        plt.xlabel("g")
+        plt.ylabel(metric)
+        plt.title(f"{metric} vs g")
+
+        cbar = plt.colorbar(sc)
+        cbar.set_label("nodes")
+
+        plt.grid(True)
+        plt.tight_layout()
+
+        plt.savefig(
+            output_path / f"{metric}_vs_g.png",
+            dpi=300,
+            bbox_inches="tight"
+        )
+        plt.close()
+
+def plot_energy_landscape(gammas, betas, E, ax=None,  save_fig=False,  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, filename=""):
     if ax is None:
         ax = plt.gca()
     im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
@@ -157,3 +238,8 @@ def plot_max_cut(G, best_bitstring, filename):
     ax.set_title(f"Max cut: {best_bitstring}")
     plt.savefig(filename, dpi=300)
     plt.close(fig)
+
+def plot_triangles(triangles):
+    x = [i for i in range(len(triangles))]
+    plt.scatter(x, triangles)
+    plt.show()

@@ -21,7 +21,7 @@ def run_example_energy_landscape(**kwargs):
     G = nx.Graph()
     G.add_nodes_from(range(5))
     G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
-    compute_energy_landscape(run_name=run_name, G=G, algo="lcqaoa", **kwargs)
+    compute_energy_landscape(run_name=run_name, G=G, algo="qaoa", **kwargs)
     compute_energy_landscape(run_name=run_name,G=G, algo="aqaoa", index=1)
 
     

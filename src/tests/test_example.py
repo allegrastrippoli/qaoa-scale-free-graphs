@@ -19,10 +19,10 @@ def test_qaoa():
     q.run(iter=100)
     print("---------------------------------------------------------")
     print(f"Hamiltonian: {q.H}")
-    print(f"Ground State Energy: {q.min}")
+    print(f"Ground State: {format(np.argmin(q.H), f"0{len(G.nodes)}b")}")
     print(f"Bitstring: {q.best_bitstring}")
     print(f"Optimal Angles: {q.angles}")
-    print(f"Minimum Energy: {q.angles}")
+    print(f"Minimum Energy: {q.energy}")
     print(f"Overlap (Probability of Smapling the Ground State): {round(q.olap*100, 1)}%")
  
 def test_lcqaoa():
@@ -34,8 +34,7 @@ def test_lcqaoa():
     lc.run(iter=100)
     print(f"Bitstring: {lc.best_bitstring}")
     print(f"Optimal Angles: {lc.angles}")
-    print(f"Minimum Energy: {lc.angles}")
-    print(f"History: {lc.best_bitstring}")
+    print(f"History: {lc.history}")
        
 def run_example_max_cut():
     p = 1 
@@ -84,9 +83,8 @@ def run_example_regular_graph(**kwargs):
     graphs.append(G2)
     graphs.append(G3)
     el = EnergyLandscape()
-    scaling = kwargs.get("scaling", True)
     for i, G in enumerate(graphs):
-        L = LightCone(G, 0, 1, p, scaling)
+        L = LightCone(G, 0, 1, p)
         el.compute(fun=L.expectation, **kwargs)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
         gammas, betas, energies2d = el.grid()

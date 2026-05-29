@@ -2,7 +2,7 @@ from utils.utils import *
 import networkx as nx
 import numpy as np
 import pandas as pd
-
+import os 
 def graph_info(G, graphs_info_filename, graph_filename):
     degrees = [G.degree(n) for n in G.nodes()]
     max_ns, max_edge = max_neighborhood_size(G)
@@ -17,7 +17,8 @@ def graph_info(G, graphs_info_filename, graph_filename):
         "max_neighborhood_size": max_ns,
     }
     df = pd.DataFrame([data])
-    df.to_csv(graphs_info_filename, mode='a', index=False, header=False)
+    header = not os.path.exists(graphs_info_filename)
+    df.to_csv(graphs_info_filename, mode='a', index=False, header=header)
 
 def history_to_csv(algo_name, best_bitstring, history, filename):
     data = []

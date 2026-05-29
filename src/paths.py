@@ -21,6 +21,7 @@ class RunPaths:
             "log": self.base / "log",
             "fig": self.base / "figures",
             "graphs": self.base / "graphs",
+            "metrics": self.base / "metrics"
         }
         for d in self.dirs.values():
             d.mkdir(parents=True, exist_ok=True)

@@ -20,19 +20,12 @@ def ZZ(G, i, j, n):
         k[j] = Z
         return tensor(k) 
 
-def graph_to_hamiltonian(G,n,scaling=True):
-    if scaling:
-        print("Description: ")
-        print("The cost function is: C = ∑½(1−ZᵤZᵥ) with (u,v) ∈ E")
-        print("-Periodicity: γ ∈ [0, 2π], β ∈ [0, π/2]")
-        print("-The max cut is given by maximizing C")
-        print("---------------------------------------")
-    else:         
-        print("Description: ")
-        print("-The cost function is: C = ∑ZᵤZᵥ with (u,v) ∈ E")
-        print("-Periodicity: γ ∈ [0, π], β ∈ [0, π/2]")
-        print("-The minimum spin aligment is given by minimizing C")
-        print("---------------------------------------") 
+def graph_to_hamiltonian(G,n):     
+    print("Description: ")
+    print("- The cost function is: C = ∑ZᵤZᵥ with (u,v) ∈ E")
+    print("- Periodicity: γ ∈ [0, π], β ∈ [0, π/2]")
+    print("- The minimum spin aligment is given by minimizing C")
+    print("---------------------------------------") 
     H = np.zeros((2**n), dtype = 'float64') 
     Z = np.array([1,-1],dtype = 'float64')
     for i in range(n):
@@ -42,11 +35,7 @@ def graph_to_hamiltonian(G,n,scaling=True):
             k = np.array(k,dtype = 'float64')
             if G[i][j] !=0: 
                 k[i] = Z
-                k[j] = Z
-                if scaling:
-                    zz = tensor(k) 
-                    H += 0.5 * G[i][j] * (1 - zz) 
-                else:                 
-                    H+= tensor(k)*G[i][j] 
+                k[j] = Z                
+                H+= tensor(k)*G[i][j] 
             j+=1
     return H
