@@ -36,44 +36,41 @@ def generate_bipartite_ring_network(n: int, p: int, q: int) -> nx.Graph:
     G = nx.relabel_nodes(G, mapping)
     return G
 
-# def generate_scale_free_graph(num_nodes: int, gamma: float) -> nx.Graph:
-#     if num_nodes < 2:
-#         G = nx.Graph()
-#         if num_nodes == 1:
-#             G.add_node(0)
-#         return G
-#     alpha = max(0.3, 4.5 / gamma - 0.5)
-#     m = max(1, min(5, int(np.ceil(5 - gamma))))
-#     G = nx.Graph()
-#     seed_size = min(m + 1, num_nodes)
-#     for i in range(seed_size):
-#         G.add_node(i)
-#     for i in range(seed_size):
-#         for j in range(i + 1, seed_size):
-#             G.add_edge(i, j)
-#     for new_node in range(seed_size, num_nodes):
-#         G.add_node(new_node)
-#         existing_nodes = list(range(new_node))
-#         delta = 0.5
-#         weights = np.array([(G.degree(node) + delta) ** alpha for node in existing_nodes])
-#         probabilities = weights / weights.sum()
-#         num_targets = min(m, len(existing_nodes))
-#         targets = np.random.choice(existing_nodes,size=num_targets,replace=False, p=probabilities)
-#         for target in targets:
-#             G.add_edge(new_node, target)
-#     return G
+def generate_scale_free_base(num_nodes: int, gamma: float) -> nx.Graph:
+    if num_nodes < 2:
+        G = nx.Graph()
+        if num_nodes == 1:
+            G.add_node(0)
+        return G
+    alpha = max(0.3, 4.5 / gamma - 0.5)
+    m = max(1, min(5, int(np.ceil(5 - gamma))))
+    G = nx.Graph()
+    seed_size = min(m + 1, num_nodes)
+    for i in range(seed_size):
+        G.add_node(i)
+    for i in range(seed_size):
+        for j in range(i + 1, seed_size):
+            G.add_edge(i, j)
+    for new_node in range(seed_size, num_nodes):
+        G.add_node(new_node)
+        existing_nodes = list(range(new_node))
+        delta = 0.5
+        weights = np.array([(G.degree(node) + delta) ** alpha for node in existing_nodes])
+        probabilities = weights / weights.sum()
+        num_targets = min(m, len(existing_nodes))
+        targets = np.random.choice(existing_nodes,size=num_targets,replace=False, p=probabilities)
+        for target in targets:
+            G.add_edge(new_node, target)
+    return G
 
 def _sample_power_law_degrees(n, gamma, k_min, k_max, rng):
-    """Sample n integer degrees from p(k) proportional to k^(-gamma) on [k_min, k_max]."""
     ks = np.arange(k_min, k_max + 1)
     weights = ks.astype(float) ** (-gamma)
     weights /= weights.sum()
     return rng.choice(ks, size=n, p=weights)
 
-
 def _enforce_min_degree(G, k_min):
     """Add edges so every node has degree >= k_min.
-
     Strategy: when multiple nodes are deficient, pair them with each other
     so a single edge fixes two deficits. When no deficient partner is
     available, connect to the lowest-degree non-neighbor in the graph,
@@ -86,20 +83,14 @@ def _enforce_min_degree(G, k_min):
         u = deficient[0]
         forbidden = set(G.neighbors(u))
         forbidden.add(u)
-
-        # Prefer another deficient non-neighbor.
         partners = [v for v in deficient if v != u and v not in forbidden]
         if not partners:
-            # Fall back to the lowest-degree non-neighbor in the whole graph.
             partners = [v for v in G.nodes if v not in forbidden]
             if not partners:
-                raise RuntimeError(
-                    f"Node {u} is already connected to every other node; "
-                    f"cannot reach k_min={k_min}."
-                )
+                raise RuntimeError(f"Node {u} is already connected to every other node; "
+                                   f"cannot reach k_min={k_min}.")
         v = min(partners, key=G.degree)
         G.add_edge(u, v)
-
 
 def generate_scale_free(n, gamma, k_min, k_max=None, seed=None,
                         max_attempts=50, strictlyEnforceMinimumDegree=False):

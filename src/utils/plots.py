@@ -11,80 +11,35 @@ from paths import *
 def plot_gamma_beta_g_energy_nodes(rp, filename):
     df = pd.read_csv(filename, sep=",")
     df.columns = df.columns.str.strip()
-
     output_path = rp.dirs["metrics"]
     output_path.mkdir(parents=True, exist_ok=True)
-
     metrics = ["gamma", "beta", "energy"]
-
-    # Normalize color scales
     g_norm = Normalize(vmin=df["g"].min(), vmax=df["g"].max())
     nodes_norm = Normalize(vmin=df["nodes"].min(), vmax=df["nodes"].max())
-
     cmap = plt.cm.coolwarm
-
-    # ---------------------------------------------------
-    # metric vs nodes (color by g)
-    # ---------------------------------------------------
     for metric in metrics:
         plt.figure(figsize=(7, 5))
-
-        sc = plt.scatter(
-            df["nodes"],
-            df[metric],
-            c=df["g"],          
-            cmap=cmap,
-            norm=g_norm,
-            s=60
-        )
-
+        sc = plt.scatter(df["nodes"], df[metric], c=df["g"], cmap=cmap, norm=g_norm, s=60)
         plt.xlabel("nodes")
         plt.ylabel(metric)
         plt.title(f"{metric} vs nodes")
-
         cbar = plt.colorbar(sc)
         cbar.set_label("g")
-
         plt.grid(True)
         plt.tight_layout()
-
-        plt.savefig(
-            output_path / f"{metric}_vs_nodes.png",
-            dpi=300,
-            bbox_inches="tight"
-        )
+        plt.savefig(output_path / f"{metric}_vs_nodes.png", dpi=300, bbox_inches="tight")
         plt.close()
-
-    # ---------------------------------------------------
-    # metric vs g (color by nodes)
-    # ---------------------------------------------------
     for metric in metrics:
         plt.figure(figsize=(7, 5))
-
-        sc = plt.scatter(
-            df["g"],
-            df[metric],
-            c=df["nodes"],      # continuous color variable
-            cmap=cmap,
-            norm=nodes_norm,
-            s=60
-        )
-
+        sc = plt.scatter(df["g"],df[metric], c=df["nodes"],cmap=cmap,norm=nodes_norm, s=60)
         plt.xlabel("g")
         plt.ylabel(metric)
         plt.title(f"{metric} vs g")
-
         cbar = plt.colorbar(sc)
         cbar.set_label("nodes")
-
         plt.grid(True)
         plt.tight_layout()
-
-        plt.savefig(
-            output_path / f"{metric}_vs_g.png",
-            dpi=300,
-            bbox_inches="tight"
-        )
+        plt.savefig(output_path / f"{metric}_vs_g.png", dpi=300, bbox_inches="tight")
         plt.close()
 
 def plot_energy_landscape(gammas, betas, E, ax=None,  save_fig=False,  opt_gammas_lst=None, opt_betas_lst=None, n_nodes_lst=None, filename=""):

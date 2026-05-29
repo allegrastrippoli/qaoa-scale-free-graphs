@@ -34,28 +34,23 @@ def optimize_angles_increasing_n_nodes(run_name, start_n, end_n,*args, fun=nx.ba
     rp = RunPaths(run_name)
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")
-    gammas_lst = []
-    betas_lst = []
     rows = []
-    
     print("Generate Dataset... 👾")
     triangles, graphs, g_values = generate_dataset(rp=rp, fun=fun, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, n_graphs=n_graphs, *args, **kwargs)
-    
     print("Optimization Start... 😙")
     oa = OptimizedAngles()
     for G, g in zip(graphs, g_values):
         row = oa.compute(G=G, algo_name=algo_name, p=p, iter=n_iter, g=g, *args, **kwargs)
         rows.append(row)
-    
     print("Store data... ✅")
-    oa.build_dataframe(rows)
-    oa.save(filename=rp.log(category=Category.OPTIMIZED_ANGLES))
-    
-    print("Plot results... 🎨")
-    gammas, betas = oa.get_opt_angles()
-    gammas_lst.append(gammas)
-    betas_lst.append(betas)
     filename = rp.log(category=Category.OPTIMIZED_ANGLES)
+    oa.build_dataframe(rows)
+    oa.save(filename=filename)
+    print("Plot results... 🎨")
     plot_gamma_beta_g_energy_nodes(rp=rp, filename=filename)
     plot_triangles(triangles)
     print("Done 🥵")
+
+    # gammas, betas = oa.get_opt_angles()
+    # gammas_lst.append(gammas)
+    # betas_lst.append(betas)

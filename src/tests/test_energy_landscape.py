@@ -15,7 +15,6 @@ def compute_energy_landscape(run_name: str, G: nx.Graph, p=1, index=0, algo="qao
         gammas, betas, energies2d = el.grid()
         plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, opt_gammas_lst=opt_gammas_lst, opt_betas_lst=opt_betas_lst, n_nodes_lst=n_nodes_lst, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
         
-
 def run_example_energy_landscape(**kwargs):
     run_name="test_energy_landscape"
     G = nx.Graph()
@@ -23,5 +22,3 @@ def run_example_energy_landscape(**kwargs):
     G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
     compute_energy_landscape(run_name=run_name, G=G, algo="qaoa", **kwargs)
     compute_energy_landscape(run_name=run_name,G=G, algo="aqaoa", index=1)
-
-    
