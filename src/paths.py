@@ -11,6 +11,7 @@ class Category(str, Enum):
     FULL_GRAPH = "full_graph"
     MAX_CUT = "max_cut"
     GRAPH = "graph"
+    TRIANGLES = "triangles"
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"

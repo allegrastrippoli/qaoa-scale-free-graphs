@@ -1,6 +1,6 @@
 from algorithms.algofactory import AlgorithmFactory
-import numpy as np
 import pandas as pd
+import networkx as nx
 import os 
 
 class OptimizedAngles:
@@ -8,6 +8,8 @@ class OptimizedAngles:
         self.df = df
         
     def compute(self, G, p, algo_name, *args, initial_angles=None, iter=0,  **kwargs):
+        triangles_per_node = nx.triangles(G)
+        triangles = sum(triangles_per_node.values()) // 3
         algo = AlgorithmFactory.create(algo=algo_name, G=G, p=p)
         algo.run(iter=iter, initial_angles=initial_angles)
         gamma,  beta = algo.angles
@@ -17,6 +19,7 @@ class OptimizedAngles:
             "gamma": gamma,
             "beta": beta,
             "energy": algo.energy,
+            "triangles": triangles,
         }
         for i, value in enumerate(args):
             row[f"arg_{i}"] = value
@@ -37,6 +40,9 @@ class OptimizedAngles:
          gammas = self.df["gamma"].to_numpy()
          betas = self.df["beta"].to_numpy()
          return gammas, betas
+     
+    def get_number_of_nodes(self):
+        return self.df["nodes"].to_numpy()
      
     def get_min_energies(self):
         return self.df["energy"].to_numpy()
