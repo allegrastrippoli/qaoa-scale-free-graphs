@@ -90,7 +90,6 @@ def test_regular_graphs(**kwargs):
         gammas, betas, energies2d = el.grid()
         plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=i))
 
-
 def create_graph(rp, fun, n, g, *args, index=None, **kwargs):
     if n <= 0:
         raise ValueError("Number of nodes must be > 0")
@@ -111,7 +110,7 @@ def generate_dataset(rp, fun, n_nodes_lst, scaling_values, n_graphs, *args, **kw
     return graphs, g_values
 
 # run_name = "test_optimized_angles"
-def test_optimized_angles(run_name, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_iter=100, n_graphs=1, algo_name="aqaoa", p=1, step=50, index=0, **kwargs):
+def test_optimized_angles(run_name, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_iter=100, n_graphs=3, algo_name="aqaoa", p=1, step=50, index=0, **kwargs):
     rp = RunPaths(run_name)
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")
@@ -130,9 +129,9 @@ def test_optimized_angles(run_name, start_n, end_n,*args, fun=nx.barabasi_albert
     print("Plot results... 🎨")
     plot_metrics(rp=rp, filename=filename)
     print("Done 🥵")
-    G = graphs[0]
-    gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G)
-    plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, oa=oa, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
+    # G = graphs[0]
+    # gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G)
+    # plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, oa=oa, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
     
 def compute_energy_landscape(rp: RunPaths, G: nx.Graph, p=1, index=0, algo="aqaoa", **kwargs):
     el = EnergyLandscape()

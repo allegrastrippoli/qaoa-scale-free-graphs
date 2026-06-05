@@ -13,4 +13,4 @@ if __name__ == "__main__":
     # scaling_values=[2, 2.25, 2.50, 2.75, 3, 3.25, 3.50, 3.75, 4]
 
     run_name = "test_optimized_angles"
-    test_optimized_angles(run_name=run_name, start_n=100, end_n=200, step=50, fun=generate_scale_free, scaling_values=[ 3, 4], k_min=5, strictlyEnforceMinimumDegree=True)
+    test_optimized_angles(run_name=run_name, start_n=800, end_n=1001, step=100, fun=generate_scale_free, scaling_values=[2, 2.25, 2.50, 2.75, 3, 3.25, 3.50, 3.75, 4], k_min=2, strictlyEnforceMinimumDegree=True)

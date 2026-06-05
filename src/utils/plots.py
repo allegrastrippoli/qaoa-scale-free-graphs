@@ -108,7 +108,7 @@ def plot_optimized_angles_fixed_clusters(oa, filename):
     plt.savefig(filename, dpi=300)
     plt.close()
     
-def plot_energy_landscape(gammas, betas, E, oa=None, ax=None, save_fig=True, filename=""):
+def  plot_energy_landscape(gammas, betas, E, oa=None, ax=None, save_fig=True, filename=""):
     if ax is None:
         ax = plt.gca()
     im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
