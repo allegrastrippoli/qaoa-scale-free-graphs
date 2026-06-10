@@ -6,15 +6,51 @@ import networkx as nx
 import pandas as pd
 from paths import *
 
+# def plot_analytical_vs_numerical():
+
+    
+
+def plot_triangles_distribution(rp, filename, index):
+    df = pd.read_csv(filename, sep=",")
+    df.columns = df.columns.str.strip()
+    output_path = rp.dirs["metrics"]
+    output_path.mkdir(parents=True, exist_ok=True)
+    grouped = (df.groupby(["g", "nodes"]).agg(triangles_mean=("triangles", "mean"), triangles_std=("triangles", "std")).reset_index())
+    grouped["triangles_std"] = grouped["triangles_std"].fillna(0)
+    cmap = plt.cm.coolwarm
+    norm = Normalize(vmin=df["g"].min(), vmax=df["g"].max())
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for g_value, group in grouped.groupby("g"):
+        group = group.sort_values("nodes")
+        color = cmap(norm(g_value))
+        ax.errorbar(
+            group["nodes"],
+            group["triangles_mean"],
+            yerr=group["triangles_std"],
+            fmt="o-",
+            color=color,
+            capsize=3,
+            label=f"g={g_value}")
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    fig.colorbar(sm, ax=ax, label="g")
+    ax.set_xlabel("Nodes")
+    ax.set_ylabel("Mean number of triangles")
+    ax.set_title("Triangles vs Nodes for different g")
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(output_path / f"triangles_distribution{index}.png", dpi=300)
+    plt.close()
+
 def plot_metrics(rp, filename):
     df = pd.read_csv(filename, sep=",")
     df.columns = df.columns.str.strip()
     output_path = rp.dirs["metrics"]
     output_path.mkdir(parents=True, exist_ok=True)
-    metrics = ["gamma", "beta", "energy", "triangles"]
     g_norm = Normalize(vmin=df["g"].min(), vmax=df["g"].max())
     nodes_norm = Normalize(vmin=df["nodes"].min(), vmax=df["nodes"].max())
     cmap = plt.cm.coolwarm
+    metrics = ["gamma", "beta", "energy", "triangles"]
     for metric in metrics:
         plt.figure(figsize=(7, 5))
         sc = plt.scatter(df["nodes"], df[metric], c=df["g"], cmap=cmap, norm=g_norm, s=60)
@@ -39,18 +75,19 @@ def plot_metrics(rp, filename):
         plt.tight_layout()
         plt.savefig(output_path / f"{metric}_vs_g.png", dpi=300, bbox_inches="tight")
         plt.close()
-    plt.figure(figsize=(7, 5))
-    
-    sc = plt.scatter(df["gamma"],df["triangles"], c=df["g"],cmap=cmap,norm=g_norm, s=60)
-    plt.xlabel("gamma")
-    plt.ylabel("triangles")
-    plt.title(f"triangles vs gamma")
-    cbar = plt.colorbar(sc)
-    cbar.set_label("g")
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(output_path / f"triangles_vs_gamma.png", dpi=300, bbox_inches="tight")
-    plt.close()
+    metrics = ["energy", "triangles"]
+    for metric in metrics:
+        plt.figure(figsize=(7, 5))
+        sc = plt.scatter(df["gamma"],df[metric], c=df["g"],cmap=cmap,norm=g_norm, s=60)
+        plt.xlabel("gamma")
+        plt.ylabel(metric)
+        plt.title(f"{metric} vs gamma")
+        cbar = plt.colorbar(sc)
+        cbar.set_label("g")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(output_path / f"{metric}_vs_gamma.png", dpi=300, bbox_inches="tight")
+        plt.close()     
         
 def plot_full_graph(G, filename, node_colors=None, edge_colors=None):
     pos = nx.spring_layout(G)    

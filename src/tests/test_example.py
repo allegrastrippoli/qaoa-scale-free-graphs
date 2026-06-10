@@ -1,4 +1,4 @@
-from utils.plots import plot_max_cut, plot_energy_landscape, plot_metrics, plot_degree_distribution
+from utils.plots import plot_max_cut, plot_energy_landscape, plot_metrics, plot_degree_distribution, plot_triangles_distribution
 from utils.generate import generate_bipartite_ring_network
 from utils.utils import brute_force_maxcut, maxcut_value
 from utils.file_utils import graph_info
@@ -90,21 +90,21 @@ def test_regular_graphs(**kwargs):
         gammas, betas, energies2d = el.grid()
         plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=i))
 
-def create_graph(rp, fun, n, g, *args, index=None, **kwargs):
+def create_graph(rp, fun, n, g, *args, index=0, graph_name=None, **kwargs):
     if n <= 0:
         raise ValueError("Number of nodes must be > 0")
     G = fun(n=n, gamma=g, *args, **kwargs)
-    graph_info(G=G, graphs_info_filename=rp.log(category=Category.GRAPHS_INFO), graph_filename=rp.graphs(category=Category.GRAPH, index=index))
-    plot_degree_distribution(G=G, filename=rp.fig(category=Category.DEGREE_DISTRIBUTION, index=index))
+    graph_info(G=G, gamma=g, graphs_info_filename=rp.log(category=Category.GRAPHS_INFO, index=index), graph_filename=rp.graphs(category=Category.GRAPH, index=graph_name))
+    plot_degree_distribution(G=G, filename=rp.fig(category=Category.DEGREE_DISTRIBUTION, index=graph_name))
     return G
 
-def generate_dataset(rp, fun, n_nodes_lst, scaling_values, n_graphs, *args, **kwargs):
+def generate_dataset(rp, fun, n_nodes_lst, scaling_values, n_graphs, index=0, *args, **kwargs):
     graphs = []
     g_values = []
     for n in n_nodes_lst:
         for g in scaling_values:
             for j in range(n_graphs):
-                G = create_graph(rp=rp, fun=fun, g=g, n=n, index=f"_{n}_nodes{j}", *args, **kwargs)
+                G = create_graph(rp=rp, fun=fun, g=g, n=n, graph_name=f"_{n}_nodes{j}", index=index, *args, **kwargs)
                 graphs.append(G)
                 g_values.append(g)
     return graphs, g_values
@@ -151,3 +151,10 @@ def run_example_energy_landscape(**kwargs):
     gammas, betas, energies2d = compute_energy_landscape(rp=rp,G=G, algo="aqaoa", index=1)
     plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(category=Category.ENERGY_LANDSCAPE))
     
+def run_triangle_example(rp, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_graphs=10, step=50, index=0, **kwargs):
+    n_nodes_lst = np.arange(start_n, end_n, step)
+    print(f"{n_nodes_lst=}")
+    generate_dataset(rp=rp, fun=fun, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, n_graphs=n_graphs, index=index, *args, **kwargs)
+    filename = rp.log(category=Category.GRAPHS_INFO, index=index)
+    plot_triangles_distribution(rp=rp, filename=filename, index=index)
+

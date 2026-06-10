@@ -4,18 +4,22 @@ import numpy as np
 import pandas as pd
 import os 
 
-def graph_info(G, graphs_info_filename, graph_filename):
+def graph_info(G, gamma, graphs_info_filename, graph_filename):
     degrees = [G.degree(n) for n in G.nodes()]
     max_ns, max_edge = max_neighborhood_size(G)
     nx.write_gml(G, graph_filename)
+    triangles_per_node = nx.triangles(G)
+    triangles = sum(triangles_per_node.values()) // 3
     data = {
         "nodes": G.number_of_nodes(),
         "edges": G.number_of_edges(),
+        "g" : gamma,    
         "connected": nx.is_connected(G),
         "max_degree": max(degrees),
         "min_degree": min(degrees),
         "avg_degree": np.mean(degrees),
         "max_neighborhood_size": max_ns,
+        "triangles": triangles,
     }
     df = pd.DataFrame([data])
     header = not os.path.exists(graphs_info_filename)
