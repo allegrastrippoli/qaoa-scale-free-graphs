@@ -110,8 +110,7 @@ def generate_dataset(rp, fun, n_nodes_lst, scaling_values, n_graphs, index=0, *a
     return graphs, g_values
 
 # run_name = "test_optimized_angles"
-def test_optimized_angles(run_name, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_iter=100, n_graphs=3, algo_name="aqaoa", p=1, step=50, index=0, **kwargs):
-    rp = RunPaths(run_name)
+def test_optimized_angles(rp, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_iter=100, n_graphs=10, algo_name="aqaoa", p=1, step=50, index=0, **kwargs):
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")
     rows = []
@@ -126,8 +125,8 @@ def test_optimized_angles(run_name, start_n, end_n,*args, fun=nx.barabasi_albert
     filename = rp.log(category=Category.OPTIMIZED_ANGLES)
     oa.build_dataframe(rows)
     oa.save(filename=filename)
-    print("Plot results... 🎨")
-    plot_metrics(rp=rp, filename=filename)
+    # print("Plot results... 🎨")
+    # plot_metrics(rp=rp, filename=filename)
     print("Done 🥵")
     # G = graphs[0]
     # gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G)

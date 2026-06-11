@@ -1,14 +1,93 @@
 from matplotlib.colors import Normalize
 from collections import Counter
+from matplotlib.cm import ScalarMappable
 import matplotlib.pyplot as plt
 from utils.utils import *
 import networkx as nx
 import pandas as pd
 from paths import *
 
-# def plot_analytical_vs_numerical():
+def _prepare_grouped(df):
+    grouped = (
+        df.groupby(["k_min", "g"])["gamma"]
+        .agg(mean="mean", std="std")
+        .reset_index())
+    grouped["std"] = grouped["std"].fillna(0.0)
+    return grouped
 
-    
+def plot_analytical_vs_numerical(rp, filename):
+    data = [
+        {"k_min": 1, "g": 2,    "gamma": 0.52},
+        {"k_min": 1, "g": 2.25, "gamma": 0.64},
+        {"k_min": 1, "g": 2.5,  "gamma": 0.72},
+        {"k_min": 1, "g": 2.75, "gamma": 0.79},
+        {"k_min": 1, "g": 3,    "gamma": 0.84},
+        {"k_min": 2, "g": 2,    "gamma": 0.34},
+        {"k_min": 2, "g": 2.25, "gamma": 0.41},
+        {"k_min": 2, "g": 2.5,  "gamma": 0.46},
+        {"k_min": 2, "g": 2.75, "gamma": 0.50},
+        {"k_min": 2, "g": 3,    "gamma": 0.53},
+        {"k_min": 3, "g": 2,    "gamma": 0.27},
+        {"k_min": 3, "g": 2.25, "gamma": 0.33},
+        {"k_min": 3, "g": 2.5,  "gamma": 0.37},
+        {"k_min": 3, "g": 2.75, "gamma": 0.40},
+        {"k_min": 3, "g": 3,    "gamma": 0.43},
+        {"k_min": 4, "g": 2,    "gamma": 0.23},
+        {"k_min": 4, "g": 2.25, "gamma": 0.28},
+        {"k_min": 4, "g": 2.5,  "gamma": 0.32},
+        {"k_min": 4, "g": 2.75, "gamma": 0.34},
+        {"k_min": 4, "g": 3,    "gamma": 0.36},
+        {"k_min": 5, "g": 2,    "gamma": 0.20},
+        {"k_min": 5, "g": 2.25, "gamma": 0.25},
+        {"k_min": 5, "g": 2.5,  "gamma": 0.28},
+        {"k_min": 5, "g": 2.75, "gamma": 0.30},
+        {"k_min": 5, "g": 3,    "gamma": 0.32}
+    ]
+    analytical_df = pd.DataFrame(data)
+    df = pd.read_csv(filename, sep=",")
+    df.columns = df.columns.str.strip()
+    output_path = rp.dirs["metrics"]
+    output_path.mkdir(parents=True, exist_ok=True)
+    grouped_num = _prepare_grouped(df)
+    grouped_ana = _prepare_grouped(analytical_df)
+    all_k = sorted(set(grouped_num["k_min"]).union(grouped_ana["k_min"]))
+    cmap = plt.cm.get_cmap("tab10", len(all_k)) 
+    color_map = {k: cmap(i) for i, k in enumerate(all_k)}
+    fig, ax = plt.subplots(figsize=(8, 6))
+    def plot_grouped_numerical(grouped):
+        for k_val, subdf in grouped.groupby("k_min"):
+            subdf = subdf.sort_values("g")
+            ax.errorbar(
+                subdf["g"],
+                subdf["mean"],
+                yerr=subdf["std"],
+                fmt="o-",
+                color=color_map[k_val],
+                capsize=3,
+                linewidth=1.5,
+                markersize=5,
+                label=f"min_deg={k_val}")
+
+    def plot_grouped_analytical(grouped):
+        for k_val, subdf in grouped.groupby("k_min"):
+            subdf = subdf.sort_values("g")
+            ax.plot(
+                subdf["g"],
+                subdf["mean"],
+                linestyle="--",
+                marker="o",
+                color=color_map[k_val],
+                linewidth=1.5,
+                markersize=5,
+                label=f"min_deg={k_val}")
+    plot_grouped_numerical(grouped_num)
+    plot_grouped_analytical(grouped_ana)
+    ax.set_xlabel("g")
+    ax.set_ylabel(r"$\gamma$")
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(output_path / "gamma_vs_g_by_kmin.png", dpi=300)
+    plt.close()
 
 def plot_triangles_distribution(rp, filename, index):
     df = pd.read_csv(filename, sep=",")
