@@ -1,7 +1,6 @@
 from utils.plots import plot_max_cut, heat_map_energy_landscape, plot_metrics, plot_degree_distribution, plot_triangles_distribution
 from utils.generate import generate_bipartite_ring_network
-from utils.utils import brute_force_maxcut, maxcut_value
-from utils.file_utils import graph_info
+from utils.utils import brute_force_maxcut, maxcut_value, graph_info
 from optimization.energylandscape import EnergyLandscape
 from optimization.optimizedangles import OptimizedAngles
 from algorithms.algofactory import AlgorithmFactory
@@ -156,4 +155,3 @@ def run_triangle_example(rp, start_n, end_n,*args, fun=nx.barabasi_albert_graph,
     generate_dataset(rp=rp, fun=fun, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, n_graphs=n_graphs, index=index, *args, **kwargs)
     filename = rp.log(category=Category.GRAPHS_INFO, index=index)
     plot_triangles_distribution(rp=rp, filename=filename, index=index)
-

@@ -83,8 +83,9 @@ def plot_analytical_vs_numerical(rp, filename):
     ax.set_xlabel("g")
     ax.set_ylabel(r"$\gamma$")
     ax.legend()
+    plt.title("Analytical and Numerical comparison")
     plt.tight_layout()
-    plt.savefig(output_path / "gamma_vs_g_by_kmin.png", dpi=300)
+    plt.savefig(output_path / "analytical_numerical_comparison.png", dpi=300)
     plt.close()
 
 def plot_triangles_distribution(rp, filename, index):

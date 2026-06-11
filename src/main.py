@@ -11,8 +11,6 @@ if __name__ == "__main__":
     # test_regular_graphs(**config)
     # run_example_energy_landscape(**config)
     
-    # scaling_values=[2, 2.25, 2.50, 2.75, 3, 3.25, 3.50, 3.75, 4]
-
     run_name = "test_optimized_angles"
     rp = RunPaths(run_name)
     for i in range(1,6):
