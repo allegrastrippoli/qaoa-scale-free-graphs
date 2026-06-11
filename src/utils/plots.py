@@ -1,6 +1,5 @@
 from matplotlib.colors import Normalize
 from collections import Counter
-from matplotlib.cm import ScalarMappable
 import matplotlib.pyplot as plt
 from utils.utils import *
 import networkx as nx
@@ -66,8 +65,7 @@ def plot_analytical_vs_numerical(rp, filename):
                 capsize=3,
                 linewidth=1.5,
                 markersize=5,
-                label=f"min_deg={k_val}")
-
+                label=f"min degree={k_val}")
     def plot_grouped_analytical(grouped):
         for k_val, subdf in grouped.groupby("k_min"):
             subdf = subdf.sort_values("g")
@@ -79,7 +77,7 @@ def plot_analytical_vs_numerical(rp, filename):
                 color=color_map[k_val],
                 linewidth=1.5,
                 markersize=5,
-                label=f"min_deg={k_val}")
+                label=f"min degree={k_val}")
     plot_grouped_numerical(grouped_num)
     plot_grouped_analytical(grouped_ana)
     ax.set_xlabel("g")
@@ -114,8 +112,8 @@ def plot_triangles_distribution(rp, filename, index):
     sm.set_array([])
     fig.colorbar(sm, ax=ax, label="g")
     ax.set_xlabel("Nodes")
-    ax.set_ylabel("Mean number of triangles")
-    ax.set_title("Triangles vs Nodes for different g")
+    ax.set_ylabel("Number of triangles")
+    ax.set_title("Triangles vs Nodes")
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.savefig(output_path / f"triangles_distribution{index}.png", dpi=300)
@@ -134,8 +132,15 @@ def plot_metrics(rp, filename):
         plt.figure(figsize=(7, 5))
         sc = plt.scatter(df["nodes"], df[metric], c=df["g"], cmap=cmap, norm=g_norm, s=60)
         plt.xlabel("nodes")
-        plt.ylabel(metric)
-        plt.title(f"{metric} vs nodes")
+        if metric == "gamma":
+            plt.ylabel(r"$\gamma$")
+            plt.title(r"$\gamma$ vs nodes")
+        elif metric == "beta":
+            plt.ylabel(r"$\beta$")
+            plt.title(r"$\beta$ vs nodes")
+        else:
+            plt.ylabel(metric)
+            plt.title(f"{metric} vs nodes")
         cbar = plt.colorbar(sc)
         cbar.set_label("g")
         plt.grid(True)
@@ -146,8 +151,15 @@ def plot_metrics(rp, filename):
         plt.figure(figsize=(7, 5))
         sc = plt.scatter(df["g"],df[metric], c=df["nodes"],cmap=cmap,norm=nodes_norm, s=60)
         plt.xlabel("g")
-        plt.ylabel(metric)
-        plt.title(f"{metric} vs g")
+        if metric == "gamma":
+            plt.ylabel(r"$\gamma$")
+            plt.title(r"$\gamma$ vs g")
+        elif metric == "beta":
+            plt.ylabel(r"$\beta$")
+            plt.title(r"$\beta$ vs g")
+        else:
+            plt.ylabel(metric)
+            plt.title(f"{metric} vs g")
         cbar = plt.colorbar(sc)
         cbar.set_label("nodes")
         plt.grid(True)
@@ -158,9 +170,9 @@ def plot_metrics(rp, filename):
     for metric in metrics:
         plt.figure(figsize=(7, 5))
         sc = plt.scatter(df["gamma"],df[metric], c=df["g"],cmap=cmap,norm=g_norm, s=60)
-        plt.xlabel("gamma")
+        plt.xlabel(r"$\gamma$")
         plt.ylabel(metric)
-        plt.title(f"{metric} vs gamma")
+        plt.title(fr"{metric} vs $\gamma$")
         cbar = plt.colorbar(sc)
         cbar.set_label("g")
         plt.grid(True)
@@ -209,7 +221,7 @@ def plot_degree_distribution(G, filename):
     plt.savefig(filename, dpi=300)
     plt.close()
 
-def plot_optimized_angles_fixed_clusters(oa, filename):
+def scatter_plot_optimized_angles(oa, filename):
     opt_gamma, opt_beta = oa.get_opt_angles()
     n_nodes = oa.get_number_of_nodes()
     cmap = plt.get_cmap("tab10", len(n_nodes))
@@ -224,7 +236,7 @@ def plot_optimized_angles_fixed_clusters(oa, filename):
     plt.savefig(filename, dpi=300)
     plt.close()
     
-def  plot_energy_landscape(gammas, betas, E, oa=None, ax=None, save_fig=True, filename=""):
+def heat_map_energy_landscape(gammas, betas, E, oa=None, ax=None, save_fig=True, filename=""):
     if ax is None:
         ax = plt.gca()
     im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")

@@ -1,4 +1,4 @@
-from utils.plots import plot_max_cut, plot_energy_landscape, plot_metrics, plot_degree_distribution, plot_triangles_distribution
+from utils.plots import plot_max_cut, heat_map_energy_landscape, plot_metrics, plot_degree_distribution, plot_triangles_distribution
 from utils.generate import generate_bipartite_ring_network
 from utils.utils import brute_force_maxcut, maxcut_value
 from utils.file_utils import graph_info
@@ -88,7 +88,7 @@ def test_regular_graphs(**kwargs):
         el.compute(fun=L.expectation, **kwargs)
         el.save(filename=rp.log(category=Category.ENERGY_LANDSCAPE , index=i))
         gammas, betas, energies2d = el.grid()
-        plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=i))
+        heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, save_fig=True, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=i))
 
 def create_graph(rp, fun, n, g, *args, index=0, graph_name=None, **kwargs):
     if n <= 0:
@@ -130,7 +130,7 @@ def test_optimized_angles(rp, start_n, end_n,*args, fun=nx.barabasi_albert_graph
     print("Done 🥵")
     # G = graphs[0]
     # gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G)
-    # plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, oa=oa, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
+    # heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, oa=oa, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index=index))
     
 def compute_energy_landscape(rp: RunPaths, G: nx.Graph, p=1, index=0, algo="aqaoa", **kwargs):
     el = EnergyLandscape()
@@ -148,7 +148,7 @@ def run_example_energy_landscape(**kwargs):
     G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
     # compute_energy_landscape(rp=rp, G=G, algo="qaoa", **kwargs)
     gammas, betas, energies2d = compute_energy_landscape(rp=rp,G=G, algo="aqaoa", index=1)
-    plot_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(category=Category.ENERGY_LANDSCAPE))
+    heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(category=Category.ENERGY_LANDSCAPE))
     
 def run_triangle_example(rp, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_graphs=10, step=50, index=0, **kwargs):
     n_nodes_lst = np.arange(start_n, end_n, step)
