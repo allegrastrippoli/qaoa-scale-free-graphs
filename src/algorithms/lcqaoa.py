@@ -1,4 +1,4 @@
-from utils.utils import compute_subgraph_for_edge
+from utils import compute_subgraph_for_edge
 from algorithms.operators import ZZ, graph_to_hamiltonian
 from algorithms.qaoa import QAOA
 from algorithms.basealgorithm import BaseAlgorithm
