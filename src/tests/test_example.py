@@ -8,6 +8,7 @@ from algorithms.lcqaoa import LightCone
 from paths import *
 import networkx as nx
 import numpy as np
+import time
 
 def test_qaoa():
     p = 1 
@@ -149,6 +150,25 @@ def run_example_energy_landscape(**kwargs):
     gammas, betas, energies2d = compute_energy_landscape(rp=rp,G=G, algo="aqaoa", index=1)
     heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(category=Category.ENERGY_LANDSCAPE))
     
+def run_example_scale_free(fun, n, g, *args, **kwargs):
+    run_name="run_example_scale_free"
+    rp = RunPaths(run_name)
+    G = create_graph(rp=rp, fun=fun, g=g, n=n, graph_name=f"prova", *args, **kwargs)
+    k_min = kwargs.get("k_min", 1)
+    
+    start_time = time.time()
+    gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="sfqaoa", index=0, k_min=k_min , alpha=g)
+    heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index="Our"))
+    print(time.time()-start_time)
+    
+    start_time = time.time()
+    gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="aqaoa", index=1)
+    heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(category=Category.ENERGY_LANDSCAPE, index="Wang"))
+    print(time.time()-start_time)
+    
+    
+
+
 def run_triangle_example(rp, start_n, end_n,*args, fun=nx.barabasi_albert_graph, scaling_values=[3], n_graphs=10, step=50, index=0, **kwargs):
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")

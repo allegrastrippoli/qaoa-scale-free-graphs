@@ -2,6 +2,7 @@ from algorithms.operators import graph_to_hamiltonian
 from algorithms.lcqaoa import LightConesQAOA
 from algorithms.rqaoa import RecursiveQAOA
 from algorithms.aqaoa import AnalyticalQAOA
+from algorithms.sfqaoa import ScaleFreeQAOA
 from algorithms.qaoa import QAOA
 import networkx as nx
 
@@ -43,6 +44,11 @@ def build_lcqaoa(G, p, **kwargs):
 def build_aqaoa(G, p, **kwargs):
     _validate_inputs(G, p)
     return AnalyticalQAOA(G=G, p=p, **kwargs)
+
+@AlgorithmFactory.register("sfqaoa")
+def build_sfqaoa(G, p, **kwargs):
+    _validate_inputs(G, p)
+    return ScaleFreeQAOA(G=G, p=p, **kwargs)
 
 def _validate_inputs(G, p):
     if not isinstance(G, nx.Graph):

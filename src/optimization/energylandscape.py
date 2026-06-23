@@ -6,8 +6,8 @@ class EnergyLandscape:
         self.df = df
     
     def compute(self, fun, n_points=100, **kwargs):
-        gamma_start = kwargs.get("gamma_start", 0)
-        gamma_end = kwargs.get("gamma_end", 2*np.pi)
+        gamma_start = kwargs.get("gamma_start", -np.pi/2)
+        gamma_end = kwargs.get("gamma_end",  np.pi/2)
         beta_start = kwargs.get("beta_start", 0)
         beta_end = kwargs.get("beta_end", np.pi/2)
         gammas = np.linspace(gamma_start, gamma_end, n_points)
