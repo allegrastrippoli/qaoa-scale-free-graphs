@@ -17,48 +17,45 @@ class AlgorithmFactory:
         return decorator
 
     @classmethod
-    def create(cls, algo, *args, **kwargs):
+    def create(cls, algo, G, p, **kwargs):
         if algo not in cls.registry:
             raise ValueError(f"Unknown algorithm {algo}")
-        return cls.registry[algo](*args, **kwargs)
+        return cls.registry[algo](G, p, **kwargs)
     
 @AlgorithmFactory.register("qaoa")
-def build_qaoa(G, p, **kwargs):
+def build_qaoa(G, p):
     _validate_inputs(G, p)
     H = graph_to_hamiltonian(nx.to_numpy_array(G), len(G.nodes))
-    return QAOA(p=p, H=H)
+    return QAOA(p, H)
 
 @AlgorithmFactory.register("rqaoa")
-def build_rqaoa(G, p, **kwargs):
+def build_rqaoa(G, p):
     _validate_inputs(G, p)
     H = graph_to_hamiltonian(nx.to_numpy_array(G), len(G.nodes))
-    Q = QAOA(p=p, H=H)
-    return RecursiveQAOA(p=p, H=H, Q=Q, G=G)
+    Q = QAOA(p, H)
+    return RecursiveQAOA(p, H, Q, G)
 
 @AlgorithmFactory.register("lcqaoa")
-def build_lcqaoa(G, p, **kwargs):
+def build_lcqaoa(G, p, edges_subset=None):
     _validate_inputs(G, p)
-    return LightConesQAOA(G=G, p=p, **kwargs)
+    return LightConesQAOA(G, p, edges_subset)
 
 @AlgorithmFactory.register("aqaoa")
-def build_aqaoa(G, p, **kwargs):
+def build_aqaoa(G, p):
     _validate_inputs(G, p)
-    return AnalyticalQAOA(G=G, p=p, **kwargs)
+    return AnalyticalQAOA(G, p)
 
 @AlgorithmFactory.register("sfqaoa")
-def build_sfqaoa(G, p, **kwargs):
+def build_sfqaoa(G, p, k_min, alpha):
     _validate_inputs(G, p)
-    return ScaleFreeQAOA(G=G, p=p, **kwargs)
+    return ScaleFreeQAOA(G, p, k_min, alpha)
 
 def _validate_inputs(G, p):
     if not isinstance(G, nx.Graph):
         raise TypeError("G must be a networkx.Graph")
-
     if G.number_of_nodes() < 2:
         raise ValueError("G must have at least two nodes")
-
     if G.number_of_edges() < 1:
         raise ValueError("G must have at least one edge")
-
     if not isinstance(p, int) or p <= 0:
         raise ValueError("p must be a positive integer")

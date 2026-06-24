@@ -7,13 +7,14 @@ import networkx as nx
 import pandas as pd
 import os 
 
-def graph_info(G, alpha, k_min, filename):
+def graph_info(graph_id, G, alpha, k_min, filename):
     degrees = [G.degree(n) for n in G.nodes()]
     max_ns, max_edge = max_neighborhood_size(G)
     nx.write_gml(G, filename)
     triangles_per_node = nx.triangles(G)
     triangles = sum(triangles_per_node.values()) // 3
     row = {
+        "graph_id": graph_id,
         "nodes": G.number_of_nodes(),
         "edges": G.number_of_edges(),
         "alpha" : alpha,   
@@ -24,11 +25,10 @@ def graph_info(G, alpha, k_min, filename):
         "avg_degree": np.mean(degrees),
         "max_neighborhood_size": max_ns,
         "triangles": triangles,
-        "gamma" : pd.NA,
-        "beta" : pd.NA,
-        "energy" : pd.NA}
+        "gamma" : np.nan,
+        "beta" : np.nan,
+        "energy" : np.nan}
     return row
-
 
 def grid(df):
     gammas = np.sort(df["gamma"].unique())
@@ -37,6 +37,8 @@ def grid(df):
     return gammas, betas, energies2d
 
 def compute(fun, n_points=100):  
+    # gamma_start = 0
+    # gamma_end = 2*np.pi
     gamma_start = -np.pi/2
     gamma_end = np.pi/2
     beta_start = 0
@@ -50,8 +52,8 @@ def compute(fun, n_points=100):
             data.append((gamma, beta, exp))
     return pd.DataFrame(data, columns=["gamma", "beta", "energy"])
     
-def compute_energy_landscape(rp: RunPaths, G: nx.Graph, p=1, index=0, algo="aqaoa"):
-    q = AlgorithmFactory.create(algo=algo, G=G, p=p)
+def compute_energy_landscape(rp: RunPaths, G: nx.Graph, p=1, index=0, algo="aqaoa", **kwargs):
+    q = AlgorithmFactory.create(algo=algo, G=G, p=p, **kwargs)
     df = compute(fun=q.expectation)
     filename=rp.log(OutputFile.ENERGY_LANDSCAPE, index=index)
     df.to_csv(filename, index=False)
@@ -59,7 +61,8 @@ def compute_energy_landscape(rp: RunPaths, G: nx.Graph, p=1, index=0, algo="aqao
     return gammas, betas, energies2d
         
 def generate_dataset(rp, n_nodes_lst, scaling_values, min_degrees, n_graphs):
-    graphs = []
+    graphs = {}
+    graph_id = 0
     rows = []
     for n in n_nodes_lst:
         for alpha in scaling_values:
@@ -69,46 +72,75 @@ def generate_dataset(rp, n_nodes_lst, scaling_values, min_degrees, n_graphs):
                         raise ValueError("Number of nodes must be > 0")
                     graph_name = f"{j}_{n}nodes_{alpha}alpha_{k_min}kmin"
                     G = generate_scale_free(n=n, alpha=alpha, k_min=k_min)
-                    row = graph_info(G=G, alpha=alpha, k_min=k_min, filename=rp.graphs(OutputFile.GRAPH, index=graph_name))
+                    row = graph_info(graph_id=graph_id, G=G, alpha=alpha, k_min=k_min, filename=rp.graphs(OutputFile.GRAPH, index=graph_name))
                     rows.append(row)
+                    graphs[graph_id] = G
+                    graph_id += 1 
                     plot_degree_distribution(G=G, filename=rp.fig(OutputFile.DEGREE_DISTRIBUTION, index=graph_name))
-                    graphs.append(G)
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows).set_index("graph_id", drop=False)
     return df, graphs
 
+def run_example_energy_landscape():
+    run_name="test_energy_landscape"
+    rp = RunPaths(run_name)
+    G = nx.Graph()
+    G.add_nodes_from(range(5))
+    G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
+    gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="aqaoa", index=0)
+    heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE))
+    
+def run_example_scale_free(n_nodes=1000, alpha=2.5, k_min=3):
+    run_name="run_example_scale_free"
+    rp = RunPaths(run_name)
+    G = generate_scale_free(n=n_nodes, alpha=alpha, k_min=k_min)
+    start_time = time.time()
+    gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="sfqaoa", index=0, k_min=k_min , alpha=alpha)
+    print(time.time()-start_time)
+    heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE, index="Our"))
+    start_time = time.time()
+    gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="aqaoa", index=1)
+    print(time.time()-start_time)
+    heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE, index="Wang"))
 
 if __name__ == "__main__":
+    # ==================== TESTS ====================
     # test_qaoa()
     # test_aqaoa()
     # test_lcqaoa()
     # test_max_cut()
-    # test_regular_graphs()
     # run_example_energy_landscape()
+    # run_example_scale_free()
+    # ==================== RUN INFO ====================
     run_name = "test_optimized_angles"
     rp = RunPaths(run_name)
-    start_n=50
-    end_n=101
-    step=50
-    n_graphs=3
-    p=1
-    n_iter=10
-    algo_name="aqaoa"
-    initial_angles=None
-    scaling_values=[2.25, 2.50]
-    min_degrees=np.arange(1,3)
+    # ==================== GRAPH GENERATION ====================
+    start_n=10
+    end_n=14
+    step=1
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")
+    n_graphs=3
+    # ==================== SCALING VALUES ====================
+    scaling_values=[2, 2.25, 2.50, 2.75, 3]
+    scaling_values=[2, 3]
+    # ==================== MINIMUM DEGREE ====================
+    min_degrees=np.arange(2,4)
+    # ==================== ALGORITHM ====================
+    algo_name="aqaoa"
+    p=1
+    n_iter_optimizer=10
+    initial_angles=None
     rows = []
     print("Generate Dataset... 👾")
-    df, graphs= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
+    df, graphs_by_id= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
+    print(f"Number of generated graphs, expected: {n_graphs * len(scaling_values) * len(min_degrees) * len(n_nodes_lst)}, got: {len(graphs_by_id)}")
     print("Optimization Start... 😙") 
-    for i, G in enumerate(graphs):
+    for graph_id, G in graphs_by_id.items():
         algo = AlgorithmFactory.create(algo=algo_name, G=G, p=p)
-        algo.run(iter=n_iter, initial_angles=initial_angles)
+        algo.run(n_iter=n_iter_optimizer, initial_angles=initial_angles)
         gamma,  beta = algo.angles
-        df.loc[i, ["gamma", "beta", "energy"]] = [gamma, beta, algo.energy]
-    df = df.reset_index()
-    print(df.head)
+        df.loc[graph_id, ["gamma", "beta", "energy"]] = [gamma, beta, algo.energy]
+    print(df.head())
     print("Store data... ✅")
     filename = rp.log(OutputFile.GRAPHS_INFO)
     header = not os.path.exists(filename)
@@ -116,21 +148,20 @@ if __name__ == "__main__":
     print("Plot results... 🎨")
     plot_metrics(rp=rp, filename=filename)
     print("Done 🥵")
-    G = graphs[0]
+    G = graphs_by_id[0]
     gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G)
     heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, df=df, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE))  
     filename = rp.log(OutputFile.GRAPHS_INFO)
     plot_analytical_vs_numerical(rp=rp, filename=filename)
     
-    # run_name = "test_triangles_distribution"
-    # rp = RunPaths(run_name)
-    # df, graphs= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
-    # filename = rp.log(OutputFile.GRAPHS_INFO)
-    # header = not os.path.exists(filename)
-    # df.to_csv(filename, header=header, index=False)
-    # filename = rp.log(OutputFile.GRAPHS_INFO)
-    # plot_triangles_distribution(rp=rp, filename=filename)
+    run_name = "test_triangles_distribution"
+    rp = RunPaths(run_name)
+    df, graphs= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
+    filename = rp.log(OutputFile.GRAPHS_INFO)
+    header = not os.path.exists(filename)
+    df.to_csv(filename, header=header, index=False)
+    filename = rp.log(OutputFile.GRAPHS_INFO)
+    plot_triangles_distribution(rp=rp, filename=filename)
     
-    # run_example_scale_free(fun=generate_scale_free, n=1000, g=2.5, k_min=2)
     
     

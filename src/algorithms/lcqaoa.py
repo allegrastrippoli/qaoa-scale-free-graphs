@@ -31,7 +31,7 @@ class LightCone:
         return olap
     
 class LightConesQAOA(BaseAlgorithm):
-    def __init__(self, G, p, edges_subset=None, **kwargs):
+    def __init__(self, G, p, edges_subset=None):
         super().__init__(p)
         self.G = G
         self.light_cones = []
