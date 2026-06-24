@@ -31,7 +31,3 @@ class AnalyticalQAOA(BaseAlgorithm):
         t2 = (sin_squared * cos_dudv) * (1 - np.cos(2*gamma)**lambda_uv)
         exp = 0.5 + 0.25*t1 - 0.25*t2
         return exp
-        
-    def _postprocess(self, res):
-        pass
-

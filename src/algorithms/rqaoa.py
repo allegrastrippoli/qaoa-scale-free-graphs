@@ -25,14 +25,6 @@ class RecursiveQAOA(BaseAlgorithm):
         ex = np.vdot(state, state * self.ZiZj.reshape(col_shape))
         return np.real(ex)
     
-    def overlap(self, angles):
-        state = self.Q.qaoa_ansatz(angles)
-        g_ener = min(self.H)
-        olap = 0
-        for i in range(len(self.H)):
-            if self.H[i] == g_ener:
-                olap += np.absolute(state[i])**2
-        return olap
 
     def update_mapping_after_removal(self, removed_id):
         new_mapping = {}
@@ -90,7 +82,8 @@ class RecursiveQAOA(BaseAlgorithm):
     
     def save_history(self, angles):
         ground_state = format(np.argmin(self.Q.H), f"0{len(self.G.nodes)}b")
-        overlap = self.overlap(angles)
+        state = self.Q.qaoa_ansatz(angles)
+        overlap = self.overlap(state, self.H)
         self.history.append({
             "num_nodes": len(self.G.nodes),
             "ground_state": ground_state,
@@ -167,5 +160,3 @@ class RecursiveQAOA(BaseAlgorithm):
                         if assignment[v] != expected:
                             raise ValueError(f"Constraints are inconsistent node: {u}, {assignment[v]} != {expected}. Constraints {constraints}")
         return assignment
-
-        

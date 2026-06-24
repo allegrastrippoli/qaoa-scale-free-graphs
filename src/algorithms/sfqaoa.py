@@ -26,6 +26,3 @@ class ScaleFreeQAOA(BaseAlgorithm):
             * (self.k_min**(self.alpha-1)))
         exp = len(self.G.edges) * 0.5 + 0.25 * t1 * I
         return -exp # -exp if we want to minimize min(-f(x))
-    
-     def _postprocess(self, res):
-        pass

@@ -7,7 +7,7 @@ class BaseAlgorithm(ABC):
         self.p = p
         self.angles = None
         self.energy = None
-        
+
     def run(self, n_iter=1, initial_angles=None):
         bounds = self._bounds()
         if n_iter > 0:
@@ -20,7 +20,7 @@ class BaseAlgorithm(ABC):
                     best_val = val
                     self.angles = res.x     
                     self.energy = res.fun 
-            self._postprocess(res)
+            self.extract_results(res)
         else:
             raise ValueError("n_iter must be > 0")
 
@@ -32,6 +32,21 @@ class BaseAlgorithm(ABC):
         betas = np.random.uniform(0, np.pi / 2, size=self.p)
         return np.concatenate([gammas, betas])
 
+    def extract_results(self, res):
+        #  Override if needed
+        pass
+    
+    @staticmethod
+    def overlap(state, H):                         
+        g_ener = min(H)
+        olap = 0
+        for i in range(len(H)):
+            if H[i] == g_ener:
+                olap+= np.absolute(state[i])**2
+        return olap
+        
     @abstractmethod
     def expectation(self, angles):
-        pass
+        ...
+        
+    

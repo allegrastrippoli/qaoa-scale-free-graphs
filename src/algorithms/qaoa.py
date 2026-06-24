@@ -92,15 +92,6 @@ class QAOA(BaseAlgorithm):
         return  np.real(ex)
     
 
-    def overlap(self,state):        # Calculates ground state overlap for any "state",
-                                                        # passed to it. Usually the final state or "f_state" returned,
-                                                        # after optimization.                                          
-        g_ener = min(self.H)
-        olap = 0
-        for i in range(len(self.H)):
-            if self.H[i] == g_ener:
-                olap+= np.absolute(state[i])**2
-        return olap
 
    #__________________________________________________________________________________________________________
 
@@ -117,9 +108,9 @@ class QAOA(BaseAlgorithm):
                     #    ground state overlap, here as "olap"
                     #    and also the optimal state, here as "f_state"
 
-    def _postprocess(self, res):
+    def extract_results(self, res):
         self.q_error = self.energy - self.min
         self.f_state = self.qaoa_ansatz(res.x)
-        self.olap = self.overlap(self.f_state)[0]
+        self.olap = self.overlap(self.f_state, self.H)[0]
         self.best_bitstring = np.binary_repr(int(np.argmax(np.abs(self.f_state))), width=self.n)
      #__________________________________________________________________________________________________________
