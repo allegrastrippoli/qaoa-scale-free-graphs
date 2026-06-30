@@ -1,5 +1,6 @@
 import gurobipy as gp
 from gurobipy import GRB
+import numpy as np
 
 def maxcut_gurobi(G):
     nodes = list(G.nodes())
@@ -15,8 +16,14 @@ def maxcut_gurobi(G):
         obj.add(w * x[j])
         obj.add(-2 * w * x[i] * x[j])
     model.setParam("OutputFlag", 0)
+    model.setParam("TimeLimit", 60)      
+    model.setParam("MIPGap", 0.01) 
     model.setObjective(obj, GRB.MAXIMIZE)
     model.optimize()
+    status = {9: "Time Limit", 2 : "Optimal"}
+    print("Status:", status[model.Status])      
+    print(f"Gap: {np.abs(model.ObjBound - model.ObjVal) /  np.abs(model.ObjVal)}%" )
     solution = {i: int(x[i].X) for i in nodes}
-    print(f"{model.ObjVal=}", f"{solution=}")
     return solution, -model.ObjVal
+
+

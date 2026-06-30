@@ -25,10 +25,10 @@ class BaseAlgorithm(ABC):
             raise ValueError("n_iter must be > 0")
 
     def _bounds(self):
-        return [(0, np.pi)]*self.p + [(0,np.pi/2)]*self.p
+        return [(0, np.pi/2)]*self.p + [(0,np.pi/2)]*self.p
     
     def initialize_angles(self):
-        gammas = np.random.uniform(0, np.pi, size=self.p)
+        gammas = np.random.uniform(0, np.pi/2, size=self.p)
         betas = np.random.uniform(0, np.pi / 2, size=self.p)
         return np.concatenate([gammas, betas])
 

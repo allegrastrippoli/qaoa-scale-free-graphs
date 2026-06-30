@@ -6,6 +6,62 @@ import networkx as nx
 import pandas as pd
 from paths import *
 
+def plot_max_cut(G, best_bitstring, filename):
+    node_colors = []
+    for bit in best_bitstring:
+        if bit == "0":
+            node_colors.append("red")
+        elif bit == "1":
+            node_colors.append("green")
+    pos = nx.spring_layout(G)
+    fig, ax = plt.subplots(figsize=(8, 8)) 
+    nx.draw(G, pos=pos, node_color=node_colors, node_size=200, with_labels=True, ax=ax)
+    ax.set_title(f"Max cut: {best_bitstring}")
+    plt.savefig(filename, dpi=300)
+    plt.close(fig)
+
+def plot_degree_distribution(G, filename):
+    degrees = [d for _, d in G.degree()]
+    degree_counts = Counter(degrees)
+    deg, freq = zip(*sorted(degree_counts.items()))
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    axes[0].scatter(deg, freq)
+    axes[0].set_title("Degree Distribution (Linear Scale)")
+    axes[0].set_xlabel("Degree")
+    axes[0].set_ylabel("Frequency")
+    axes[1].scatter(deg, freq)
+    axes[1].set_xscale('log')
+    axes[1].set_yscale('log')
+    axes[1].set_title("Degree Distribution (Log-Log Scale)")
+    axes[1].set_xlabel("Degree")
+    axes[1].set_ylabel("Frequency")
+    plt.grid()
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.close()
+    
+def heat_map_energy_landscape(gammas, betas, E, df=None, ax=None, save_fig=True, filename=""):
+    if ax is None:
+        ax = plt.gca()
+    im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
+    ax.set_xlabel(r"$\beta$")
+    ax.set_ylabel(r"$\gamma$")
+    plt.colorbar(im, ax=ax, label="Energy")
+    if df is not None:
+        opt_gamma = df["gamma"].to_numpy()
+        opt_beta = df["beta"].to_numpy()
+        n_nodes = df["nodes"]
+        unique_nodes = sorted(set(n_nodes))
+        cmap = plt.get_cmap("tab10", len(unique_nodes))
+        color_map = {n: cmap(i) for i, n in enumerate(unique_nodes)}
+        for b, g, n in zip(opt_beta, opt_gamma, n_nodes):
+            plt.scatter(b, g, color=color_map[n], alpha=0.3)
+        handles = [plt.Line2D([], [], marker='o', linestyle='', color=color_map[n], label=f"{n} nodes") for n in unique_nodes]
+        ax.legend(handles=handles)
+    if save_fig:
+        plt.savefig(filename, dpi=300)
+        plt.close()
+
 def _prepare_grouped(df):
     grouped = (
         df.groupby(["k_min", "alpha"])["gamma"]
@@ -123,8 +179,7 @@ def plot_triangles_distribution(rp, filename, index=0):
 def plot_metrics(rp, filename):
     df = pd.read_csv(filename, sep=",")
     df.columns = df.columns.str.strip()
-    output_path = rp.dirs["metrics"]
-    output_path.mkdir(parents=True, exist_ok=True)
+    output_path = rp.dirs["fig"]
     g_norm = Normalize(vmin=df["alpha"].min(), vmax=df["alpha"].max())
     nodes_norm = Normalize(vmin=df["nodes"].min(), vmax=df["nodes"].max())
     cmap = plt.cm.coolwarm
@@ -181,80 +236,56 @@ def plot_metrics(rp, filename):
         plt.savefig(output_path / f"{metric}_vs_gamma.png", dpi=300, bbox_inches="tight")
         plt.close()     
         
-def plot_full_graph(G, filename=None, node_colors=None, edge_colors=None):
-    pos = nx.spring_layout(G)    
-    plt.figure(figsize=(8, 8))
-    nx.draw(G, pos=pos, node_color=node_colors,edge_color=edge_colors, node_size=200, with_labels=True)
-    if filename:
-        plt.savefig(filename, dpi=300)
-    else:
-        plt.show()
-    plt.close()
-
-def plot_max_cut(G, best_bitstring, filename):
-    node_colors = []
-    for bit in best_bitstring:
-        if bit == "0":
-            node_colors.append("red")
-        elif bit == "1":
-            node_colors.append("green")
-    pos = nx.spring_layout(G)
-    fig, ax = plt.subplots(figsize=(8, 8)) 
-    nx.draw(G, pos=pos, node_color=node_colors, node_size=200, with_labels=True, ax=ax)
-    ax.set_title(f"Max cut: {best_bitstring}")
-    plt.savefig(filename, dpi=300)
-    plt.close(fig)
-
-def plot_degree_distribution(G, filename):
-    degrees = [d for _, d in G.degree()]
-    degree_counts = Counter(degrees)
-    deg, freq = zip(*sorted(degree_counts.items()))
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    axes[0].scatter(deg, freq)
-    axes[0].set_title("Degree Distribution (Linear Scale)")
-    axes[0].set_xlabel("Degree")
-    axes[0].set_ylabel("Frequency")
-    axes[1].scatter(deg, freq)
-    axes[1].set_xscale('log')
-    axes[1].set_yscale('log')
-    axes[1].set_title("Degree Distribution (Log-Log Scale)")
-    axes[1].set_xlabel("Degree")
-    axes[1].set_ylabel("Frequency")
-    plt.grid()
+def approx_ratio(rp, filename):
+    df = pd.read_csv(filename, sep=",")
+    df.columns = df.columns.str.strip()
+    df["ratio"] = df["energy"] / df["gurobi_energy"]
+    plt.figure(figsize=(7, 5))
+    sc = plt.plot([i for i in range(len(df["ratio"]))],df["ratio"], color="pink")
+    plt.xlabel(r"Graphs")
+    plt.ylabel("Approximation Ratio")
+    plt.show()
     plt.tight_layout()
-    plt.savefig(filename, dpi=300)
-    plt.close()
-
-def scatter_plot_optimized_angles(oa, filename):
-    opt_gamma, opt_beta = oa.get_opt_angles()
-    n_nodes = oa.get_number_of_nodes()
-    cmap = plt.get_cmap("tab10", len(n_nodes))
-    plt.figure(figsize=(8, 6))
-    for i, (b, g) in enumerate(zip(opt_beta, opt_gamma)):
-        plt.scatter(b, g, color=cmap(i), alpha=0.3, label=f"{n_nodes[i]} nodes")
-    plt.xlabel(r"$\beta$")
-    plt.ylabel(r"$\gamma$")
-    plt.title("Optimized Angles")
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(filename, dpi=300)
-    plt.close()
+    plt.close()     
     
-def heat_map_energy_landscape(gammas, betas, E, df=None, ax=None, save_fig=True, filename=""):
-    if ax is None:
-        ax = plt.gca()
-    im = ax.imshow(E, extent=[betas.min(), betas.max(), gammas.min(), gammas.max()], origin="lower", cmap="magma", aspect="auto")
-    ax.set_xlabel(r"$\beta$")
-    ax.set_ylabel(r"$\gamma$")
-    plt.colorbar(im, ax=ax, label="Energy")
-    if df is not None:
-        opt_gamma = df["gamma"].to_numpy()
-        opt_beta = df["beta"].to_numpy()
-        n_nodes = df["nodes"]
-        cmap = plt.get_cmap("tab10", len(n_nodes))
-        for i, (b, g) in enumerate(zip(opt_beta, opt_gamma)):
-            plt.scatter(b, g, color=cmap(i), alpha=0.3, label=f"{n_nodes[i]} nodes")
-            ax.legend()
-    if save_fig:
-        plt.savefig(filename, dpi=300)
-        plt.close()
+    
+def approx_ratio(rp, filename):
+    df = pd.read_csv(filename, sep=",")
+    df.columns = df.columns.str.strip()
+    df["qaoa_ratio"] = df["energy"] / df["gurobi_energy"]
+    df["randomcut_ratio"] = (-(df["edges"] / 2)) / df["gurobi_energy"]
+    plt.figure(figsize=(7, 5))
+    for (k_min, alpha), group in df.groupby(["k_min", "alpha"]):
+        stats = (group.groupby("nodes")
+            .agg(
+                qaoa_mean=("qaoa_ratio", "mean"),
+                qaoa_std=("qaoa_ratio", "std"),
+                random_mean=("randomcut_ratio", "mean"),
+                random_std=("randomcut_ratio", "std"),)
+            .reset_index()
+            .sort_values("nodes"))
+        label_qaoa = f"QAOA (k={k_min}, α={alpha})"
+        label_rand = f"Random (k={k_min}, α={alpha})"
+        plt.errorbar(
+            stats["nodes"],
+            stats["qaoa_mean"],
+            yerr=stats["qaoa_std"],
+            marker="o",
+            capsize=4,
+            label=label_qaoa,)
+        plt.errorbar(
+            stats["nodes"],
+            stats["random_mean"],
+            yerr=stats["random_std"],
+            marker="s",
+            linestyle="--",
+            capsize=4,
+            label=label_rand,)
+    plt.xlabel("Number of nodes")
+    plt.ylabel("Approximation Ratio")
+    plt.title("Approximation Ratio vs. Random Cut Baseline")
+    plt.legend()
+    plt.tight_layout()
+    filename = rp.fig(OutputFile.APPROX_RATIO)
+    plt.savefig(filename, dpi=300, bbox_inches="tight")
+    plt.close()

@@ -25,7 +25,6 @@ class RecursiveQAOA(BaseAlgorithm):
         ex = np.vdot(state, state * self.ZiZj.reshape(col_shape))
         return np.real(ex)
     
-
     def update_mapping_after_removal(self, removed_id):
         new_mapping = {}
         for new_id, original_id in self.mapping.items():

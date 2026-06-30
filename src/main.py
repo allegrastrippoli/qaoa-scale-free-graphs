@@ -1,9 +1,11 @@
 from test_example import *
-from utils import max_neighborhood_size, generate_scale_free
-from plots import plot_analytical_vs_numerical, heat_map_energy_landscape
+from utils import max_neighborhood_size, generate_scale_free, generate_bipartite_ring_network
+from plots import plot_analytical_vs_numerical, heat_map_energy_landscape,approx_ratio
 from algorithms.algofactory import AlgorithmFactory
 from plots import plot_degree_distribution, heat_map_energy_landscape, plot_metrics, plot_degree_distribution, plot_triangles_distribution
+from classic_maxcut import maxcut_gurobi
 import networkx as nx
+import gurobipy as gb
 import pandas as pd
 import os 
 
@@ -27,7 +29,10 @@ def graph_info(graph_id, G, alpha, k_min, filename):
         "triangles": triangles,
         "gamma" : np.nan,
         "beta" : np.nan,
-        "energy" : np.nan}
+        "energy" : np.nan,
+        "gurobi_energy" : np.nan, 
+        "qaoa_ratio" : np.nan,
+        "randomcut_ratio" : np.nan}
     return row
 
 def grid(df):
@@ -76,7 +81,7 @@ def generate_dataset(rp, n_nodes_lst, scaling_values, min_degrees, n_graphs):
                     rows.append(row)
                     graphs[graph_id] = G
                     graph_id += 1 
-                    plot_degree_distribution(G=G, filename=rp.fig(OutputFile.DEGREE_DISTRIBUTION, index=graph_name))
+                    # plot_degree_distribution(G=G, filename=rp.fig(OutputFile.DEGREE_DISTRIBUTION, index=graph_name))
     df = pd.DataFrame(rows).set_index("graph_id", drop=False)
     return df, graphs
 
@@ -89,6 +94,18 @@ def run_example_energy_landscape():
     gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="aqaoa", index=0)
     heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE))
     
+def random_cut_value(G, n_samples=200, seed=None):
+    rng = np.random.default_rng(seed)
+    nodes = list(G.nodes())
+    n = len(nodes)
+    cut_values = []
+    for _ in range(n_samples):
+        assignment = rng.integers(0, 2, size=n)
+        node_to_side = dict(zip(nodes, assignment))
+        cut = sum(1 for u, v in G.edges() if node_to_side[u] != node_to_side[v])
+        cut_values.append(cut)
+    return -np.mean(cut_values), np.std(cut_values)
+
 def run_example_scale_free(n_nodes=1000, alpha=2.5, k_min=3):
     run_name="run_example_scale_free"
     rp = RunPaths(run_name)
@@ -101,6 +118,34 @@ def run_example_scale_free(n_nodes=1000, alpha=2.5, k_min=3):
     gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G, algo="aqaoa", index=1)
     print(time.time()-start_time)
     heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE, index="Wang"))
+    
+def test_approx_ratio(): 
+    algo_name = "aqaoa"
+    n_iter_optimizer=100
+    initial_angles=None
+    p=1
+    n = 1000
+    m = 5
+    G3 = nx.barabasi_albert_graph(n, m)
+    # algo = AlgorithmFactory.create(algo=algo_name, G=G3, p=p)
+    # algo.run(n_iter=n_iter_optimizer, initial_angles=initial_angles)
+    # _, gurobi_energy = maxcut_gurobi(G3)
+    # print(algo.energy / gurobi_energy)
+    
+    algo_name = "sfqaoa"
+    alpha = 3
+    degrees = [d for _, d in G3.degree()]
+    algo = AlgorithmFactory.create(algo=algo_name, G=G3, p=p, k_min=m, alpha=alpha)
+    algo.run(n_iter=n_iter_optimizer, initial_angles=initial_angles)
+    _, gurobi_energy = maxcut_gurobi(G3)
+    print("Scale-Free QAOA Approximation Ratio ", algo.energy / gurobi_energy)
+    half_edges = -len(G3.edges) / 2
+    print("Half Edges Cut Approximation Ratio ", half_edges / gurobi_energy)
+    
+    # random_cut_energy = random_cut_value(G3)[0]
+    # print("Random cut Approximation Ratio", random_cut_energy / gurobi_energy)
+    
+
 
 if __name__ == "__main__":
     # ==================== TESTS ====================
@@ -110,58 +155,62 @@ if __name__ == "__main__":
     # test_max_cut()
     # run_example_energy_landscape()
     # run_example_scale_free()
+    # test_approx_ratio()
     # ==================== RUN INFO ====================
     run_name = "test_optimized_angles"
     rp = RunPaths(run_name)
     # ==================== GRAPH GENERATION ====================
     start_n=10
-    end_n=14
-    step=1
+    end_n=51
+    step=10
     n_nodes_lst = np.arange(start_n, end_n, step)
     print(f"{n_nodes_lst=}")
     n_graphs=3
     # ==================== SCALING VALUES ====================
-    scaling_values=[2, 2.25, 2.50, 2.75, 3]
-    scaling_values=[2, 3]
+    scaling_values=[2.25, 2.75]
     # ==================== MINIMUM DEGREE ====================
-    min_degrees=np.arange(2,4)
+    min_degrees=np.arange(2,6, 2)
+    print(min_degrees)
     # ==================== ALGORITHM ====================
-    algo_name="aqaoa"
+    algo_name="sfqaoa"
     p=1
-    n_iter_optimizer=10
+    n_iter_optimizer=100
     initial_angles=None
     rows = []
     print("Generate Dataset... 👾")
-    df, graphs_by_id= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
+    df, graphs_by_id = generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
     print(f"Number of generated graphs, expected: {n_graphs * len(scaling_values) * len(min_degrees) * len(n_nodes_lst)}, got: {len(graphs_by_id)}")
     print("Optimization Start... 😙") 
     for graph_id, G in graphs_by_id.items():
-        algo = AlgorithmFactory.create(algo=algo_name, G=G, p=p)
+        # algo = AlgorithmFactory.create(algo=algo_name, G=G, p=p)
+        k_min=df.at[graph_id, "k_min"]
+        alpha=df.at[graph_id, "alpha"]
+        algo = AlgorithmFactory.create(algo=algo_name, G=G, p=p, k_min=k_min, alpha=alpha)
         algo.run(n_iter=n_iter_optimizer, initial_angles=initial_angles)
+        _, gurobi_energy = maxcut_gurobi(G)
         gamma,  beta = algo.angles
-        df.loc[graph_id, ["gamma", "beta", "energy"]] = [gamma, beta, algo.energy]
+        df.loc[graph_id, ["gamma", "beta", "energy",  "gurobi_energy"]] = [gamma, beta, algo.energy, gurobi_energy]
     print(df.head())
     print("Store data... ✅")
     filename = rp.log(OutputFile.GRAPHS_INFO)
     header = not os.path.exists(filename)
     df.to_csv(filename, header=header, index=False)
     print("Plot results... 🎨")
+    approx_ratio(rp, filename)
     plot_metrics(rp=rp, filename=filename)
-    print("Done 🥵")
     G = graphs_by_id[0]
     gammas, betas, energies2d = compute_energy_landscape(rp=rp, G=G)
     heat_map_energy_landscape(gammas=gammas, betas=betas, E=energies2d, df=df, filename=rp.fig(OutputFile.ENERGY_LANDSCAPE))  
     filename = rp.log(OutputFile.GRAPHS_INFO)
     plot_analytical_vs_numerical(rp=rp, filename=filename)
     
-    run_name = "test_triangles_distribution"
-    rp = RunPaths(run_name)
-    df, graphs= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
-    filename = rp.log(OutputFile.GRAPHS_INFO)
-    header = not os.path.exists(filename)
-    df.to_csv(filename, header=header, index=False)
-    filename = rp.log(OutputFile.GRAPHS_INFO)
-    plot_triangles_distribution(rp=rp, filename=filename)
+    # run_name = "test_triangles_distribution"
+    # rp = RunPaths(run_name)
+    # df, graphs= generate_dataset(rp=rp, n_nodes_lst=n_nodes_lst, scaling_values=scaling_values, min_degrees=min_degrees, n_graphs=n_graphs)
+    # filename = rp.log(OutputFile.GRAPHS_INFO)
+    # header = not os.path.exists(filename)
+    # df.to_csv(filename, header=header, index=False)
+    # filename = rp.log(OutputFile.GRAPHS_INFO)
+    # plot_triangles_distribution(rp=rp, filename=filename)
     
-    
-    
+    # print("Done 🥵")

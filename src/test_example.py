@@ -8,6 +8,10 @@ import networkx as nx
 import numpy as np
 import time
 
+def test_rqaoa():
+    print("TO DO: Not implemented yet")
+    pass
+
 def test_qaoa():
     p = 1 
     G = nx.Graph()
@@ -25,7 +29,7 @@ def test_qaoa():
  
 def test_aqaoa():
     p = 1 
-    G = generate_bipartite_ring_network(10, 2, 5)
+    G = generate_bipartite_ring_network(5, 1, 2)
     # plot_full_graph(G)
     a = AlgorithmFactory.create(algo="aqaoa", G=G, p=p)
     a.run(n_iter=100)
@@ -46,12 +50,14 @@ def test_lcqaoa():
     p = 1 
     G = nx.Graph()
     G.add_nodes_from(range(4))
-    G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
+    # G.add_edges_from([(0,1),(1,2),(2,3),(3,0),(1,3)])
+    G.add_edges_from([(0,1),(1,2),(2,3),(3,4)])
     lc = AlgorithmFactory.create(algo="lcqaoa", G=G, p=p)
     lc.run(n_iter=100)
     print(f"Bitstring: {lc.best_bitstring}")
     print(f"Optimal Angles: {lc.angles}")
     print(f"History: {lc.history}")
+    
        
 def test_max_cut():
     p = 1 
@@ -81,7 +87,3 @@ def test_max_cut():
           f"{lc.history=}\n",
           f"{ratio=}")
     plot_max_cut(G=G, best_bitstring=lc.best_bitstring, filename=rp.fig(OutputFile.MAX_CUT, index="_lcqaoa"))    
-
-
-    
-    

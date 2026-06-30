@@ -20,7 +20,6 @@ class LightCone:
         col_shape = (2**self.Q.n, 1)
         ex = np.vdot(state, state * self.ZuZv.reshape(col_shape))
         return np.real(ex)
-
     
 class LightConesQAOA(BaseAlgorithm):
     def __init__(self, G, p, edges_subset=None):
@@ -34,6 +33,18 @@ class LightConesQAOA(BaseAlgorithm):
             for u, v in edges_subset:
                 self.light_cones.append(LightCone(G, u, v, p))
         self.history = []
+        
+    def save_history(self):
+        for lc in self.light_cones:
+            state = lc.Q.qaoa_ansatz(self.angles)     
+            overlap = self.overlap(state, lc.H)[0]
+            ground_state = format(np.argmin(lc.H), f"0{lc.n_sub}b")
+            self.history.append({
+                "edge": (lc.u, lc.v),
+                "ground_state": ground_state,
+                "overlap": f"{round(overlap*100, 1)}%",
+                "angles": self.angles
+            })
 
     def extract_results(self, res): 
         self.best_bitstring = self.find_bitstring()
@@ -85,14 +96,4 @@ class LightConesQAOA(BaseAlgorithm):
             samples[bitstring] = samples.get(bitstring, 0) + 1        
         return max(samples.items(), key=lambda x:x[1])[0]
     
-    def save_history(self):
-        for lc in self.light_cones:
-            state = lc.Q.qaoa_ansatz(self.angles)     
-            overlap = self.overlap(state, lc.H)[0]
-            ground_state = format(np.argmin(lc.H), f"0{lc.n_sub}b")
-            self.history.append({
-                "edge": (lc.u, lc.v),
-                "ground_state": ground_state,
-                "overlap": f"{round(overlap*100, 1)}%",
-                "angles": self.angles
-            })
+

@@ -8,6 +8,7 @@ class OutputFile(str, Enum):
     DEGREE_DISTRIBUTION = "degree_distribution/degree_distribution"
     MAX_CUT = "max_cut"
     GRAPH = "graph"
+    APPROX_RATIO = "approx_ratio"
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output"
